@@ -168,71 +168,6 @@ ll_bc95_tnorm <- function(params, y, X, Z, deb) {
   return(-result)
 }
 
-# ll_tfe_tnorm <- function(params, id, y, X, Z) {
-#
-# }
-#
-# # lambda
-# ll_bc95b_tnorm <- function(params, y, X, Z, deb) {
-#
-#   N <- length(y)
-#
-#   # extract parameters from parameter vector
-#   nbetas <- ncol(X) # number of beta coeffs
-#   ndeltas <- ncol(Z) # number of delta coeffs
-#
-#   if (length(params) != nbetas + ndeltas + 2) {
-#     stop("Incorrect nuber of parameters. ", nbetas, "+", ndeltas, "+ 2 needed, but ", length(params), " supplied.")
-#   }
-#
-#   p_beta <- params[1:nbetas]
-#   p_delta <- params[(nbetas + 1):(nbetas + ndeltas)]
-#
-#   p_sigma <- params[(nbetas + ndeltas + 1)]
-#   p_lambda <- params[(nbetas + ndeltas + 2)]
-#
-#   if (deb) cat("Total of ", length(params), " parameters: \n",
-#                "Betas: ", paste(p_beta), "\n",
-#                "Deltas: ", paste(p_delta), "\n",
-#                "Sigma: ", sigma2_v,
-#                "Lambda: ", sigma2_w)
-#
-#   # penalize negative variance parameters
-#   if (p_sigma <= 0 | p_lambda <= 0 ) {
-#     if (deb) {
-#       cat("One of sigma or lambda is not positive...", p_sigma, " or ", p_lambda)
-#     }
-#     return(-.Machine$double.xmax / 10)
-#   }
-#
-#   sigma_u <- p_lambda * p_sigma / sqrt(1+lambda^2)
-#   mu <- as.vector(Z %*% p_delta)
-#
-#   temp_expr1 <- -1*N *
-#   temp_expr2 <- -0.5 * sum((eps + Zdelta)^2)/sigma2
-#   temp_expr3 <- - sum(log(pnorm(Zdelta / sqrt(sigma2_v))) - log(pnorm(mu_ast / sigma_ast)))
-#
-#   if (deb) cat("Log-likelihood: ", temp_expr1, " + ", temp_expr2, " + ", temp_expr3, "\n")
-#
-#   if (is.na(temp_expr3) | is.infinite(temp_expr3)) {
-#     if (deb) {
-#       cat("Infinite term3...", temp_expr3)
-#     }
-#     # temp_expr3 <-
-#     #   log(pmax(pnorm(Zdelta / sqrt(sigma2_v)), .Machine$double.eps)) -
-#     #   log(pmax(pnorm(mu_ast / sigma_ast), .Machine$double.eps))
-#     #
-#     # temp_expr3 <- - sum(temp_expr3)
-#     #
-#     # if (deb) cat(temp_expr3)
-#
-#     return(-.Machine$double.xmax / 10)
-#   }
-#
-#   result <- temp_expr1 + temp_expr2 + temp_expr3
-#   return(result)
-# }
-
 
 # MAIN FUNCTION -----------------------------------------------------------
 
@@ -344,31 +279,3 @@ sfa <- function(formula,
           method = method,
           ...)
 }
-
-
-# ARCHIVE -----------------------------------------------------------------
-
-# # simulated density function
-# smldensity <- function(i, n_obs, Zdelta, p_sigma_u, p_sigma_v, v_term) {
-#   u_term <- p_sigma_u * abs(rnorm(n_obs,
-#                                   mean = Zdelta))
-#   res <- dnorm(u_term + v_term,
-#                mean = 0,
-#                sd = p_sigma_v)
-#   return(res)
-# }
-#
-#
-# # GRADIENT FUNTIONS
-# llgrad <- function(x, ...){
-#   eps = sqrt(.Machine$double.neg.eps)
-#   x1 <- x + eps * pmax(abs(x), 1)
-#   x2 <- x - eps * pmax(abs(x), 1)
-#   (ll(x1, ...) - ll(x2, ...)) / (x1 - x2)
-# }
-#
-#
-# require(numDeriv)
-# llgrad2 <- function(...) {
-#   grad(func = ll, method = "Richardson", ...)
-# }
