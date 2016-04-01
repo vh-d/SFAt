@@ -1,7 +1,7 @@
 # LIKELIHOOD FUNCTIONS -----------------------------------------------------
 
 # likelihood function normal/half-normal distributional assumption
-ll_hnorm <- function(params, y, X, deb) {
+ll_cs_hnorm <- function(params, y, X, deb) {
   nbetas <- ncol(X)
 
   # +/- scale to control for cost/production frontiers
@@ -31,7 +31,7 @@ ll_hnorm <- function(params, y, X, deb) {
 }
 
 # likelihood function normal/exponential distributional assumption
-ll_exp <- function(params, y, X, deb) {
+ll_cs_exp <- function(params, y, X, deb) {
   nbetas <- ncol(X)
 
   # +/- scale to control for cost/production frontiers
@@ -62,7 +62,7 @@ ll_exp <- function(params, y, X, deb) {
 }
 
 # likelihood function normal/truncated-normal distributional assumption
-ll_tnorm <- function(params, y, X, deb) {
+ll_cs_tnorm <- function(params, y, X, deb) {
 
   nbetas <- ncol(X)
 
@@ -75,37 +75,46 @@ ll_tnorm <- function(params, y, X, deb) {
 
   p_beta <- params[1:nbetas]
 
-  p_sigma2_u <- params[nbetas + 1]
-  p_sigma2_v <- params[nbetas + 2]
+  p_sigma <- params[nbetas + 1]
+  p_lambda <- params[nbetas + 2]
 
   p_mu <- params[nbetas + 3]
 
   epsilon <- y - X %*% p_beta
-  sigma_u <- sqrt(p_sigma2_u)
-  sigma_v <- sqrt(p_sigma2_v)
+  sigma_u <- p_lambda * p_sigma / sqrt(1 + p_lambda^2)
 
   N <- length(y)
 
   ll <-
-    -(N / 2* log(1 / (2 * pi)) + N * log(1 / (sqrt(sigmau2 + sigmav2)))
-      - log(pnorm((p_mu/sqrt(sigmau2))))
-      + sum(log(pnorm(((1 - (sigmau2/(sigmau2 + sigmav2)))
-                       - sc * (sigmau2 / (sigmau2 + sigmav2)) * epsilon)
-                      / (sqrt(sigmau2 * (1 - sigmau2 / (sigmau2 + sigmav2)))))))
-      - 1 / (2 * (sigmau2 + sigmav2)) * sum((epsilon + sc * p_mu)^2))
+    - N * (0.5 * log(2*pi) + log(sigma) + log(pnorm(p_mu/sigma_u))) +
+    sum(
+      log(pnorm((p_mu / (p_sigma * p_lambda)) - ((epsilon * p_lambda) / p_sigma))) +
+        - 0.5 * ((epsilon + p_mu) / p_sigma)^2
+    )
 
+  return(-ll)
 }
 
-# Battise-Coelli model
+
+# likelihood function normal/gamma distributional assumption
+# ll_gamma <- function() {
+#
+# }
+
+
+# Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
+# heterogeneity in efficiency term: endogeneous location parameter mu
+# implemented as in Hadri, 1999 and Hadri et al. 2003
 # parameters: p_beta, p_delta, p_sigma_w, p_sigma_v
-ll_bc95_tnorm <- function(params, y, X, Z, deb) {
+ll_cs_bc95 <- function(params, y, X, Z, deb) {
 
   # extract parameters from parameter vector
   nbetas <- ncol(X) # number of beta coeffs
   ndeltas <- ncol(Z) # number of delta coeffs
 
   if (length(params) != nbetas + ndeltas + 2) {
-    stop("Incorrect nuber of parameters. ", nbetas, "+", ndeltas, "+ 2 needed, but ", length(params), " supplied.")
+    stop("Incorrect nuber of parameters. ",
+         nbetas, "+", ndeltas, "+ 2 needed, but ", length(params), " supplied.")
   }
 
   p_beta <- params[1:nbetas]
@@ -232,7 +241,7 @@ sfa.fit <- function(y, X,
 # FORMULA FUNCTION --------------------------------------------------------
 
 #' stochastic frontier analysis
-#' @export
+# #' @export # this API is not ready yet
 sfa <- function(formula,
                 data = NULL,
                 intercept = TRUE,
