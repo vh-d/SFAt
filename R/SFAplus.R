@@ -235,6 +235,7 @@ sfa.fit <- function(y, X,
                Z = Z,
                deb = deb)
 
+  est$N <- length(y)
   return(est)
 }
 
