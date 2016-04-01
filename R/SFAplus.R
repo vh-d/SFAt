@@ -106,7 +106,7 @@ ll_cs_tnorm <- function(params, y, X, deb) {
 # heterogeneity in efficiency term: endogeneous location parameter mu
 # implemented as in Hadri, 1999 and Hadri et al. 2003
 # parameters: p_beta, p_delta, p_sigma_w, p_sigma_v
-ll_cs_bc95 <- function(params, y, X, Z, deb) {
+ll_cs_tnorm_bc95 <- function(params, y, X, Z, deb) {
 
   # extract parameters from parameter vector
   nbetas <- ncol(X) # number of beta coeffs
@@ -186,8 +186,9 @@ sfa.fit <- function(y, X,
                     Z = NULL,
                     intercept = TRUE,
                     intercept_Z = TRUE,
-                    model = "panel",
+                    structure = "cs",
                     dist = "tnorm",
+                    spec = "bc95",
                     start_val = NULL,
                     par_mu = NULL, # set if the mu parameter is known
                     form = "cost",
@@ -217,7 +218,7 @@ sfa.fit <- function(y, X,
     start_val = lmfit
   }
 
-  ll_fn_call <- parse(text = paste0("ll", "_", model, "_", dist))
+  ll_fn_call <- parse(text = paste0("ll", "_", structure, "_", dist, "_", spec))
 
   initpar = c(lmfit$coefficients[1:n_betas], rep(0, n_deltas), 1, 1)
 
@@ -241,7 +242,7 @@ sfa.fit <- function(y, X,
 # FORMULA FUNCTION --------------------------------------------------------
 
 #' stochastic frontier analysis
-# #' @export # this API is not ready yet
+# @export # this API is not ready yet
 sfa <- function(formula,
                 data = NULL,
                 intercept = TRUE,
