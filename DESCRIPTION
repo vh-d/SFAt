@@ -9,5 +9,11 @@ License: GPL-2
 LazyData: TRUE
 RoxygenNote: 5.0.1
 Imports:
+Suggests:
   data.table,
-  Formula
+  msm,
+  GGally,
+  ggplot2,
+  sfa,
+  frontier,
+  Benchmarking

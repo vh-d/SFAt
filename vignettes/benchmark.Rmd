@@ -1,0 +1,38 @@
+---
+title: "SFAplus compared to other existing SFA packages"
+author: "Vaclav Hausenblas"
+date: "2016-04-01"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+### benchmark with sfa package
+
+```{r}
+require(sfa)
+
+summary(sfa::sfa(y ~ x1 + x2 + x1x2 + z1 + z2, data= dtDT))
+
+```
+
+
+### benchmark with frontier package methods
+
+```{r}
+require(frontier)
+
+frontest <- frontier::sfa(y ~ x1 + x2 + x1x2 | z1 + z2,
+                          data = dtDT,
+                          ineffDecrease = T,
+                          muBound = 0,
+                          maxit = 100)
+
+summary(frontest)
+lrtest(frontest)
+
+```
+
