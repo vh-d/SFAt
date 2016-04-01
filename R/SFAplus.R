@@ -1,11 +1,8 @@
 # LIKELIHOOD FUNCTIONS -----------------------------------------------------
 
 # likelihood function normal/half-normal distributional assumption
-ll_cs_hnorm <- function(params, y, X, deb) {
+ll_cs_hnorm <- function(params, y, X, ineff, deb) {
   nbetas <- ncol(X)
-
-  # +/- scale to control for cost/production frontiers
-  sc <- 1
 
   if (length(params) != nbetas + 1) {
     stop("Incorrect nuber of parameters. ", nbetas + 1, " needed, but ", length(params), " supplied.")
@@ -16,7 +13,7 @@ ll_cs_hnorm <- function(params, y, X, deb) {
   p_sigma2_u <- params[nbetas + 1]
   p_sigma2_v <- params[nbetas + 2]
 
-  epsilon <- y - X %*% p_beta
+  epsilon <- ineff*(y - X %*% p_beta)
   sigma <- sqrt(p_sigma2_u + p_sigma2_v)
 
   N <- length(y)
@@ -24,18 +21,15 @@ ll_cs_hnorm <- function(params, y, X, deb) {
   ll <-
     -N*log(sigma) +
     -(N*log(sqrt(2) / sqrt(pi))) + # the const term
-    +sum(log(pnorm(-sc*(epsilon * (sqrt(p_sigma2_u) / sqrt(p_sigma2_u))) / sigma))) +
+    +sum(log(pnorm(-(epsilon * (sqrt(p_sigma2_u) / sqrt(p_sigma2_u))) / sigma))) +
     -0.5 * (p_sigma2_u + p_sigma2_v) * sum(epsilon^2)
 
   return(-ll)
 }
 
 # likelihood function normal/exponential distributional assumption
-ll_cs_exp <- function(params, y, X, deb) {
+ll_cs_exp <- function(params, y, X, ineff, deb) {
   nbetas <- ncol(X)
-
-  # +/- scale to control for cost/production frontiers
-  sc <- 1
 
   if (length(params) != nbetas + 1) {
     stop("Incorrect nuber of parameters. ", nbetas + 1, " needed, but ", length(params), " supplied.")
@@ -46,7 +40,7 @@ ll_cs_exp <- function(params, y, X, deb) {
   p_sigma2_u <- params[nbetas + 1]
   p_sigma2_v <- params[nbetas + 2]
 
-  epsilon <- y - X %*% p_beta
+  epsilon <- ineff * (y - X %*% p_beta)
   sigma_u <- sqrt(p_sigma2_u)
   sigma_v <- sqrt(p_sigma2_v)
 
@@ -55,19 +49,16 @@ ll_cs_exp <- function(params, y, X, deb) {
   ll <-
     - N * log(sigma_u) +
     0.5 * N * (p_sigma2_v / p_sigma2_u) +
-    sum(log(pnorm(-(sc*epsilon + (p_sigma2_v / sigma_u)) / sigma_v))) +
-    sc / sigma_u * sum(epsilon)
+    sum(log(pnorm(-(epsilon + (p_sigma2_v / sigma_u)) / sigma_v))) +
+    sum(epsilon) / sigma_u
 
   return(-ll)
 }
 
 # likelihood function normal/truncated-normal distributional assumption
-ll_cs_tnorm <- function(params, y, X, deb) {
+ll_cs_tnorm <- function(params, y, X, ineff, deb) {
 
   nbetas <- ncol(X)
-
-  # +/- scale to control for cost/production frontiers
-  sc <- 1
 
   if (length(params) != nbetas + 1) {
     stop("Incorrect nuber of parameters. ", nbetas + 1, " needed, but ", length(params), " supplied.")
@@ -80,7 +71,7 @@ ll_cs_tnorm <- function(params, y, X, deb) {
 
   p_mu <- params[nbetas + 3]
 
-  epsilon <- y - X %*% p_beta
+  epsilon <- ineff * (y - X %*% p_beta)
   sigma_u <- p_lambda * p_sigma / sqrt(1 + p_lambda^2)
 
   N <- length(y)
@@ -104,9 +95,9 @@ ll_cs_tnorm <- function(params, y, X, deb) {
 
 # Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
 # heterogeneity in efficiency term: endogeneous location parameter mu
-# implemented as in Hadri, 1999 and Hadri et al. 2003
+# implemented as Hadri et al. 2003
 # parameters: p_beta, p_delta, p_sigma_w, p_sigma_v
-ll_cs_tnorm_bc95 <- function(params, y, X, Z, deb) {
+ll_cs_tnorm_bc95 <- function(params, y, X, Z, ineff, deb) {
 
   # extract parameters from parameter vector
   nbetas <- ncol(X) # number of beta coeffs
@@ -137,6 +128,8 @@ ll_cs_tnorm_bc95 <- function(params, y, X, Z, deb) {
     return(1e12)
   }
 
+  N <- length(y)
+
   sigma2 <- sigma2_w + sigma2_v # variance of composite error term
 
   sigma_v <- sqrt(sigma2_v)
@@ -147,11 +140,11 @@ ll_cs_tnorm_bc95 <- function(params, y, X, Z, deb) {
 
   Zdelta <- as.vector(Z %*% p_delta) # fitted means of inefficiency term
 
-  eps <- as.vector(y - (X %*% p_beta)) # composite error terms
+  eps <- ineff*as.vector(y - (X %*% p_beta)) # composite error terms
 
   mu_ast <- (sigma2_w*Zdelta - sigma2_v*eps) / sigma2
 
-  temp_expr1 <- -0.5 * length(y) * (log(2*pi) + log(sigma2))
+  temp_expr1 <- -0.5 * N * (log(2*pi) + log(sigma2))
   temp_expr2 <- -0.5 * sum((eps + Zdelta)^2)/sigma2
   temp_expr3 <- - sum(log(pnorm(Zdelta / sigma_v))
                       - log(pnorm(mu_ast / sigma_ast)))
@@ -191,7 +184,7 @@ sfa.fit <- function(y, X,
                     spec = "bc95",
                     start_val = NULL,
                     par_mu = NULL, # set if the mu parameter is known
-                    form = "cost",
+                    ineff = 1,
                     opt_method = "BFGS",
                     deb = T, # TRUE for debug reports
                     control_opt = NULL,
@@ -233,6 +226,7 @@ sfa.fit <- function(y, X,
                y = y,
                X = X,
                Z = Z,
+               ineff = ineff,
                deb = deb)
 
   est$N <- length(y)
@@ -251,7 +245,7 @@ sfa <- function(formula,
                 dist = "hnormal",
                 start_val = NULL,
                 par_mu = NULL,
-                form = "cost",
+                ineff = 1,
                 opt_method = "BFGS", ...){
 
   formula_ext <- Formula(formula)
