@@ -1,11 +1,11 @@
 Package: SFAplus
 Type: Package
-Title: Stochastic frontier analysis with heterogenous cross-section and panel data
+Title: Stochastic frontier analysis with (potentially heterogenous) cross-section and panel data
 Version: 0.1.1
 Author: Vaclav Hausenblas
 Maintainer: Vaclav Hausenblas <vaclav.hausenblas@gmail.com>
 Description: Comprehensive collection of routines for estimating SFA (Stochastic frontier analysis) models on both cross-section and panel data with heterogeneity.
-License: GPLv2
+License: GPL-2
 LazyData: TRUE
 RoxygenNote: 5.0.1
 Imports:
