@@ -9,25 +9,27 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-SFAplus package aims ...
+This document shows and test basic routines of SFAplus package.
+
+```{r}
+require(SFAplus)
+require(msm) # package for drawing from truncated-normal distribution
+require(data.table) # for more convenient data manipulation
+```
+
+
+### Example dataset
+
+Lets generate some randomly simulated production data,
 
 ```{r}
 source("simulate_data.R")
 
-require(SFAplus)
-
-require(msm) # package for simulating random datasets
-require(data.table)
-```
-
-
-### Simulate random data
-```{r}
-
-dtDT <- as.data.table(sim_data(500))
+dtDT <- as.data.table(sim_data(1000))
 
 ```
 
+and explore the production data and simulated inefficiency term.
 
 ```{r}
 # require(GGally)
@@ -39,7 +41,7 @@ hist(dtDT$u)
 
 ```
 
-## Fit a SFA model
+## SFA model
 
 ```{r}
 
@@ -58,9 +60,9 @@ print(est)
 ```
 
 
-# fit an OLS model
+## OLS model
 
-for LR test and starting values of parameters
+We might be interested in simple OLS model for LR test (and starting values of parameters).
 
 ```{r}
 
@@ -91,21 +93,33 @@ summary(lmfit)
 <!-- print(est) -->
 
 
-## Compute summary statistics
+## Test statistics 
 
+Compute test statistics for coefficients
 ```{r}
 
 var_beta <- diag(solve(est$hessian))
-tvalue <- est$par/sqrt(var_beta)
-coef.table <- cbind(est$par, sqrt(var_beta), tvalue)
-colnames(coef.table) <- c("Estimate", "Std. Error","t value")
+tstats <- est$par/sqrt(var_beta)
+pvalues <- 2 * pt(q = abs(tstats), 
+                  df = est$N - length(est$par)+3,
+                  lower.tail = FALSE)
+coef.table <- round(cbind(est$par, sqrt(var_beta), tstats, pvalues), 3)
+colnames(coef.table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
 row.names(coef.table) <- names(est$par)
+
+coef.table
+```
+
+LR ratio test of model specification.
+```{r}
 ll_sfa <- -est$value
 ll_ols <- logLik(lmfit)
-LRtest <- 2*(ll_sfa - ll_ols)[1]
+LR_test_stat <- 2*(ll_sfa - ll_ols)[1]
 chisq_df <- (4+3+2) - attributes(logLik(lmfit))$df
-p_value <- pchisq(LRtest, chisq_df, lower.tail = FALSE)
+p_value <- pchisq(LR_test_stat, chisq_df, lower.tail = FALSE)
 
+print(LR_test_stat)
+print(p_value)
 ```
 
 
