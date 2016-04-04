@@ -2,13 +2,43 @@
 % Please edit documentation in R/SFAplus.R
 \name{sfa.fit}
 \alias{sfa.fit}
-\title{stochastic frontier analysis}
+\title{sfa.fit}
 \usage{
 sfa.fit(y, X, Z = NULL, intercept = TRUE, intercept_Z = TRUE,
-  model = "panel", dist = "tnorm", start_val = NULL, par_mu = NULL,
-  form = "cost", opt_method = "BFGS", deb = T, ...)
+  structure = "cs", dist = "tnorm", spec = "bc95", start_val = NULL,
+  ineff = -1, opt_method = "BFGS", deb = F, control_opt = NULL)
+}
+\arguments{
+\item{y}{dependent (production/cost) variable.}
+
+\item{X}{variables of the production/cost function.}
+
+\item{Z}{exogneous determinants of the mean inefficiency location.}
+
+\item{intercept}{TRUE/FALSE if the intercept should be included in the main formula.}
+
+\item{intercept_Z}{TRUE/FALSE if the intercept should be included in the inefficiency location formula.}
+
+\item{structure}{"cs" for cross-section or "panel" for panel data model.}
+
+\item{dist}{distribution of inefficiency term ("hnorm", "exp", "tnorm").}
+
+\item{spec}{specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).}
+
+\item{start_val}{starting value of model parameters to be passed to optimization routine.}
+
+\item{ineff}{-1 (or 1) for production (or cost) function.}
+
+\item{opt_method}{optimization method.}
+
+\item{deb}{debug mode (TRUE/FALSE).}
+
+\item{control_opt}{list of options for optimization routine.}
+}
+\value{
+list
 }
 \description{
-stochastic frontier analysis
+Fits stochastic frontier analysis (SFA) model
 }
 

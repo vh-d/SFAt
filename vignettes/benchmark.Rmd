@@ -9,15 +9,70 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+### Example dataset
 
-### benchmark with sfa package
+Lets generate some randomly simulated production data,
 
 ```{r}
-require(sfa)
+source("simulate_data.R")
 
-summary(sfa::sfa(y ~ x1 + x2 + x1x2 + z1 + z2, data= dtDT))
+dtDT <- as.data.table(sim_data(500))
 
 ```
+
+and explore the production data and simulated inefficiency term.
+
+```{r, fig.width = 10, fig.height = 10}
+# require(GGally)
+# ggpairs(dtDT)
+
+plot(dtDT)
+```
+
+```{r}
+hist(dtDT$y)
+hist(dtDT$u)
+hist(dtDT$eps)
+
+```
+
+## OLS model
+
+We might be interested in simple OLS model for LR test (and starting values of parameters).
+
+```{r}
+
+lmfit <- lm(y ~ x1 + x2 + z1 + z2, data = dtDT)
+summary(lmfit)
+
+```
+
+## SFA model
+
+```{r}
+est <- SFAplus::sfa.fit(y = dtDT$y,
+                        X = as.matrix(dtDT[, .(x1, x2)]),
+                        Z = as.matrix(dtDT[, .(z1, z2)]),
+                        spec = "bc95",
+                        deb = F,
+                        opt_method = "BFGS"
+                        # control_opt = list(maxit = 300, trace = T)
+)
+print(est)
+```
+
+
+<!-- ### benchmark with sfa package -->
+
+<!-- ```{r} -->
+<!-- require(sfa) -->
+
+<!-- summary(sfa::sfa(y ~ x1 + x2,  -->
+<!--                  data = dtDT,  -->
+<!--                  fun = "tnormal",  -->
+<!--                  form = "production")) -->
+
+<!-- ``` -->
 
 
 ### benchmark with frontier package methods
@@ -25,9 +80,10 @@ summary(sfa::sfa(y ~ x1 + x2 + x1x2 + z1 + z2, data= dtDT))
 ```{r}
 require(frontier)
 
-frontest <- frontier::sfa(y ~ x1 + x2 + x1x2 | z1 + z2,
+frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
                           data = dtDT,
                           ineffDecrease = T,
+                          truncNorm = T,
                           muBound = 0,
                           maxit = 100)
 

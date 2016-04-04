@@ -12,9 +12,9 @@ vignette: >
 This document shows and test basic routines of SFAplus package.
 
 ```{r}
-require(SFAplus)
-require(msm) # package for drawing from truncated-normal distribution
-require(data.table) # for more convenient data manipulation
+# require(SFAplus)
+# require(msm) # package for drawing from truncated-normal distribution
+# require(data.table) # for more convenient data manipulation
 ```
 
 
@@ -25,7 +25,7 @@ Lets generate some randomly simulated production data,
 ```{r}
 source("simulate_data.R")
 
-dtDT <- as.data.table(sim_data(1000))
+data1 <- as.data.frame(sim_data(500))
 
 ```
 
@@ -35,26 +35,37 @@ and explore the production data and simulated inefficiency term.
 # require(GGally)
 # ggpairs(dtDT)
 
-plot(dtDT)
-hist(dtDT$y)
-hist(dtDT$u)
+plot(data1)
+hist(data1$y)
+hist(data1$u)
+hist(data1$eps)
 
 ```
-
-## SFA model
+## SFA -- normal/t-normal model
 
 ```{r}
 
-est <- SFAplus::sfa.fit(y = dtDT$y,
-                        X = as.matrix(dtDT[, .(1, x1, x2)]),
-                        Z = as.matrix(dtDT[, .(1, z1, z2)]),
-                        intercept = F,
-                        intercept_Z = F,
+SFAplus::sfa.fit(y = data1$y,
+                        X = cbind(data1$x1, data1$x2),
+                        spec  = NULL,
+                        deb = T
+                        # control_opt = list(maxit = 300)
+)
+
+```
+
+
+## SFA model with endogenous inefficiency mean 
+
+```{r}
+
+est <- SFAplus::sfa.fit(y = data1$y,
+                        X = cbind(data1$x1, data1$x2),
+                        Z = cbind(data1$z1, data1$z2),
                         spec  = "bc95",
-                        deb = F,
-                        opt_method = "BFGS",
-                        # control_opt = list(maxit = 300),
-                        trace = T)
+                        deb = F
+                        # control_opt = list(maxit = 300)
+)
 
 print(est)
 ```
@@ -66,7 +77,7 @@ We might be interested in simple OLS model for LR test (and starting values of p
 
 ```{r}
 
-lmfit <- lm(y ~ x1 + x2 + z1 + z2, data = dtDT)
+lmfit <- lm(y ~ x1 + x2 + I(-z1) + I(-z2), data = data1)
 summary(lmfit)
 
 ```
@@ -99,20 +110,27 @@ Compute test statistics for coefficients
 ```{r}
 
 var_beta <- diag(solve(est$hessian))
-tstats <- est$par/sqrt(var_beta)
+
+tstats <- est$coeff/sqrt(var_beta)
+
 pvalues <- 2 * pt(q = abs(tstats), 
                   df = est$N - length(est$par)+3,
                   lower.tail = FALSE)
-coef.table <- round(cbind(est$par, sqrt(var_beta), tstats, pvalues), 3)
+
+coef.table <- round(cbind(est$coeff, 
+                          sqrt(var_beta), 
+                          tstats, 
+                          pvalues), 
+                    3)
 colnames(coef.table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
-row.names(coef.table) <- names(est$par)
+row.names(coef.table) <- names(est$coeff)
 
 coef.table
 ```
 
 LR ratio test of model specification.
 ```{r}
-ll_sfa <- -est$value
+ll_sfa <- -est$loglik
 ll_ols <- logLik(lmfit)
 LR_test_stat <- 2*(ll_sfa - ll_ols)[1]
 chisq_df <- (4+3+2) - attributes(logLik(lmfit))$df
