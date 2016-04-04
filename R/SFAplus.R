@@ -1,11 +1,12 @@
 # LIKELIHOOD FUNCTIONS -----------------------------------------------------
 
 # likelihood function normal/half-normal distributional assumption
+# params: beta, sigma_u^2, sigma_v^2
 ll_cs_hnorm <- function(params, y, X, ineff, deb) {
   nbetas <- ncol(X)
 
-  if (length(params) != nbetas + 1) {
-    stop("Incorrect nuber of parameters. ", nbetas + 1, " needed, but ", length(params), " supplied.")
+  if (length(params) != nbetas + 2) {
+    stop("Incorrect nuber of parameters. ", nbetas + 2, " needed, but ", length(params), " supplied.")
   }
 
   p_beta <- params[1:nbetas]
@@ -13,7 +14,7 @@ ll_cs_hnorm <- function(params, y, X, ineff, deb) {
   p_sigma2_u <- params[nbetas + 1]
   p_sigma2_v <- params[nbetas + 2]
 
-  epsilon <- ineff*(y - X %*% p_beta)
+  epsilon <- -ineff*(y - X %*% p_beta)
   sigma <- sqrt(p_sigma2_u + p_sigma2_v)
 
   N <- length(y)
@@ -28,11 +29,12 @@ ll_cs_hnorm <- function(params, y, X, ineff, deb) {
 }
 
 # likelihood function normal/exponential distributional assumption
+# params: beta, sigma_u^2, sigma_v^2
 ll_cs_exp <- function(params, y, X, ineff, deb) {
   nbetas <- ncol(X)
 
-  if (length(params) != nbetas + 1) {
-    stop("Incorrect nuber of parameters. ", nbetas + 1, " needed, but ", length(params), " supplied.")
+  if (length(params) != nbetas + 2) {
+    stop("Incorrect nuber of parameters. ", nbetas + 2, " needed, but ", length(params), " supplied.")
   }
 
   p_beta <- params[1:nbetas]
@@ -40,7 +42,7 @@ ll_cs_exp <- function(params, y, X, ineff, deb) {
   p_sigma2_u <- params[nbetas + 1]
   p_sigma2_v <- params[nbetas + 2]
 
-  epsilon <- ineff * (y - X %*% p_beta)
+  epsilon <- -ineff * (y - X %*% p_beta)
   sigma_u <- sqrt(p_sigma2_u)
   sigma_v <- sqrt(p_sigma2_v)
 
@@ -56,28 +58,29 @@ ll_cs_exp <- function(params, y, X, ineff, deb) {
 }
 
 # likelihood function normal/truncated-normal distributional assumption
+# params: beta, sigma^2, lambda, mu
 ll_cs_tnorm <- function(params, y, X, ineff, deb) {
 
   nbetas <- ncol(X)
 
-  if (length(params) != nbetas + 1) {
-    stop("Incorrect nuber of parameters. ", nbetas + 1, " needed, but ", length(params), " supplied.")
+  if (length(params) != nbetas + 3) {
+    stop("Incorrect nuber of parameters. ", nbetas + 3, " needed, but ", length(params), " supplied.")
   }
 
   p_beta <- params[1:nbetas]
 
-  p_sigma <- params[nbetas + 1]
-  p_lambda <- params[nbetas + 2]
+  p_mu <- params[nbetas + 1]
 
-  p_mu <- params[nbetas + 3]
+  p_sigma <- params[nbetas + 2]
+  p_lambda <- params[nbetas + 3]
 
-  epsilon <- ineff * (y - X %*% p_beta)
+  epsilon <- -ineff * (y - X %*% p_beta)
   sigma_u <- p_lambda * p_sigma / sqrt(1 + p_lambda^2)
 
   N <- length(y)
 
   ll <-
-    - N * (0.5 * log(2*pi) + log(sigma) + log(pnorm(p_mu/sigma_u))) +
+    - N * (0.5 * log(2*pi) + log(p_sigma) + log(pnorm(p_mu/sigma_u))) +
     sum(
       log(pnorm((p_mu / (p_sigma * p_lambda)) - ((epsilon * p_lambda) / p_sigma))) +
         - 0.5 * ((epsilon + p_mu) / p_sigma)^2
@@ -140,40 +143,66 @@ ll_cs_tnorm_bc95 <- function(params, y, X, Z, ineff, deb) {
 
   Zdelta <- as.vector(Z %*% p_delta) # fitted means of inefficiency term
 
-  eps <- ineff*as.vector(y - (X %*% p_beta)) # composite error terms
+  eps <- as.vector(y - (X %*% p_beta)) # composite error terms
 
   mu_ast <- (sigma2_w*Zdelta - sigma2_v*eps) / sigma2
 
   temp_expr1 <- -0.5 * N * (log(2*pi) + log(sigma2))
-  temp_expr2 <- -0.5 * sum((eps + Zdelta)^2)/sigma2
-  temp_expr3 <- - sum(log(pnorm(Zdelta / sigma_v))
-                      - log(pnorm(mu_ast / sigma_ast)))
+  temp_expr2 <- -0.5 * sum((-ineff*eps + Zdelta)^2)/sigma2
+  temp_expr3 <- - sum(log(pnorm(Zdelta / sigma_v)))
+  temp_expr4 <- + sum(log(pnorm(mu_ast / sigma_ast)))
 
-  if (deb) cat("Log-likelihood: ", temp_expr1, " + ", temp_expr2, " + ", temp_expr3, "\n")
+
+  if (deb) cat("Log-likelihood: ",
+               temp_expr1, " + ", temp_expr2, " + ",
+               temp_expr3, " + ", temp_expr4, "\n")
 
   if (is.na(temp_expr3) | is.infinite(temp_expr3)) {
     if (deb) {
       cat("Infinite term3...", temp_expr3, "\n")
     }
-    temp_expr3 <-
-      pmax(log(pnorm(Zdelta / sqrt(sigma2_v))), -6e12) -
-      pmax(log(pnorm(mu_ast / sigma_ast)), -6e12)
-
+    temp_expr3 <- pmin(log(pnorm(Zdelta / sqrt(sigma2_v))), 6e12)
     temp_expr3 <- - sum(temp_expr3)
 
-    if (deb) cat(temp_expr3)
-
-    # return(1e9)
+    if (deb) cat(temp_expr3, "\n")
   }
 
-  result <- temp_expr1 + temp_expr2 + temp_expr3
+  if (is.na(temp_expr4) | is.infinite(temp_expr4)) {
+    if (deb) {
+      cat("Infinite term3...", temp_expr4, "\n")
+    }
+    temp_expr4 <- pmax(log(pnorm(mu_ast / sigma_ast)), -6e12)
+    temp_expr4 <- sum(temp_expr4)
+
+    if (deb) cat(temp_expr4, "\n")
+  }
+
+  result <- temp_expr1 + temp_expr2 + temp_expr3 + temp_expr4
   return(-result)
 }
 
 
 # MAIN FUNCTION -----------------------------------------------------------
 
-#' stochastic frontier analysis
+#' sfa.fit
+#'
+#' Fits stochastic frontier analysis (SFA) model
+#'
+#' @param y dependent (production/cost) variable.
+#' @param X variables of the production/cost function.
+#' @param Z exogneous determinants of the mean inefficiency location.
+#' @param intercept TRUE/FALSE if the intercept should be included in the main formula.
+#' @param intercept_Z TRUE/FALSE if the intercept should be included in the inefficiency location formula.
+#' @param structure "cs" for cross-section or "panel" for panel data model.
+#' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
+#' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
+#' @param start_val starting value of model parameters to be passed to optimization routine.
+#' @param ineff -1 (or 1) for production (or cost) function.
+#' @param opt_method optimization method.
+#' @param deb debug mode (TRUE/FALSE).
+#' @param control_opt list of options for optimization routine.
+#'
+#' @return list
 #' @export
 sfa.fit <- function(y, X,
                     Z = NULL,
@@ -183,43 +212,84 @@ sfa.fit <- function(y, X,
                     dist = "tnorm",
                     spec = "bc95",
                     start_val = NULL,
-                    par_mu = NULL, # set if the mu parameter is known
-                    ineff = 1,
+                    ineff = -1,
                     opt_method = "BFGS",
-                    deb = T, # TRUE for debug reports
-                    control_opt = NULL,
-                    ...) {
+                    deb = F, # TRUE for debug reports
+                    control_opt = NULL) {
 
   n_betas <- ncol(X)
-  n_deltas <- ncol(Z)
+  n_deltas <- if (is.null(Z)) 0 else ncol(Z)
 
   if (intercept) {
     n_betas <- n_betas + 1
     X <- cbind(1, X)
   }
 
-  if (intercept_Z) {
-    n_deltas <- n_deltas + 1
-    Z <- cbind(1, Z)
+  if (deb) {
+    cat(ifelse(intercept == T, "X", "no X"),  "intercept, ",
+        n_betas, " X coefficient parameters, ",
+        n_deltas, " Z coefficient parameters,", "\n")
   }
 
-  # fit by OLS for LR test and starting values
-  lmfit <- lm.fit(y = y, x = X)
-  if (deb) print(summary(lmfit))
+
+  # STARTING VALUES
+
+  # lmfit <- lm.fit(y = y, x = X)
 
   if (is.null(start_val)) {
-    start_val = lmfit
+    if (is.null(spec)) {
+
+      # fit OLS for starting values of betas and sigma
+      lmfit <- lm.fit(y = y, x = X)
+      if (deb) print(summary(lmfit))
+
+      if (dist == "tnorm")
+        start_val <- c(lmfit$coefficients, 0, 1, 1)
+      else
+        start_val <- c(lmfit$coefficients, 1, 1)
+    } else {
+
+      # fit OLS for starting values of betas and sigma
+      lmfit <- lm.fit(y = y, x = X)
+      if (deb) print(summary(lmfit))
+
+      start_val <-
+        c(lmfit$coefficients[1:n_betas],
+          if (intercept_Z) 0 else NULL,
+          lmfit$coefficients[(n_betas + 1) : (n_betas + n_deltas - 1)],
+          1, 1)
+
+      if (intercept_Z) {
+        n_deltas <- n_deltas + 1
+        Z <- cbind(1, Z)
+      }
+
+    }
   }
 
-  ll_fn_call <- parse(text = paste0("ll", "_", structure, "_", dist, "_", spec))
+  if (deb) print(start_val)
 
-  initpar = c(lmfit$coefficients[1:n_betas], rep(0, n_deltas), 1, 1)
+  ll_fn_call <- parse(text = paste0("ll", "_",
+                                    structure, "_",
+                                    dist,
+                                    if (is.null(spec)) NULL else c("_", spec)))
+
 
   # lowerb <- c(rep(-Inf, n_betas + n_deltas), 0.000001, 0.000001)
 
-  est <- optim(initpar,
+  if (is.null(Z)) {
+   est <- optim(start_val,
                fn = eval(ll_fn_call),
-               # lower = lowerb,
+               method = opt_method,
+               control = control_opt,
+               hessian = T,
+               y = y,
+               X = X,
+               ineff = ineff,
+               deb = deb)
+  } else {
+     est <- optim(start_val,
+               fn = eval(ll_fn_call),
                method = opt_method,
                control = control_opt,
                hessian = T,
@@ -228,16 +298,30 @@ sfa.fit <- function(y, X,
                Z = Z,
                ineff = ineff,
                deb = deb)
+  }
 
-  est$N <- length(y)
-  return(est)
+  fit <- list(coeffs = est$par,
+              N = length(y),
+              ineff_name = ifelse(ineff == -1, "production", "cost"),
+              call = list(ineff = ineff,
+                          intercept = intercept,
+                          intercept_Z = intercept_Z,
+                          dist = dist,
+                          spec = spec,
+                          structure = structure),
+              loglik = est$val,
+              hessian = est$hessian)
+
+  class(fit) <- c("sfa")
+
+  return(fit)
 }
 
 
 # FORMULA FUNCTION --------------------------------------------------------
 
 #' stochastic frontier analysis
-# @export # this API is not ready yet
+# export # this API is not ready yet
 sfa <- function(formula,
                 data = NULL,
                 intercept = TRUE,
@@ -245,7 +329,7 @@ sfa <- function(formula,
                 dist = "hnormal",
                 start_val = NULL,
                 par_mu = NULL,
-                ineff = 1,
+                ineff = -1,
                 opt_method = "BFGS", ...){
 
   formula_ext <- Formula(formula)
@@ -278,9 +362,16 @@ sfa <- function(formula,
           intercept = intercept,
           intercept_Z = intercept_Z,
           dist = dist,
+          model = model,
           start_val = start_val,
-          par_mu = par_mu,
           form = form,
           method = method,
           ...)
+}
+
+
+# SUMMARY FUNCTION --------------------------------------------------------
+#' @export
+summary.sfa <- function(sfa_model) {
+
 }
