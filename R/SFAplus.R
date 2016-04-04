@@ -250,17 +250,17 @@ sfa.fit <- function(y, X,
     } else {
 
       # fit OLS for starting values of betas and sigma
-      lmfit <- lm.fit(y = y, x = X)
+      lmfit <- lm.fit(y = y, x = cbind(X, Z))
       if (deb) print(summary(lmfit))
 
       start_val <-
         c(lmfit$coefficients[1:n_betas],
           if (intercept_Z) 0 else NULL,
-          lmfit$coefficients[(n_betas + 1) : (n_betas + n_deltas - 1)],
+          lmfit$coefficients[(n_betas + 1) : (n_betas + n_deltas)],
           1, 1)
 
       if (intercept_Z) {
-        n_deltas <- n_deltas + 1
+        # n_deltas <- n_deltas + 1
         Z <- cbind(1, Z)
       }
 
@@ -272,7 +272,7 @@ sfa.fit <- function(y, X,
   ll_fn_call <- parse(text = paste0("ll", "_",
                                     structure, "_",
                                     dist,
-                                    if (is.null(spec)) NULL else c("_", spec)))
+                                    if (is.null(spec)) NULL else paste0("_", spec)))
 
 
   # lowerb <- c(rep(-Inf, n_betas + n_deltas), 0.000001, 0.000001)
