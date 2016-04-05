@@ -219,10 +219,12 @@ sfa.fit <- function(y, X,
 
   n_betas <- ncol(X)
   n_deltas <- if (is.null(Z)) 0 else ncol(Z)
+  x_names <- colnames(X)
 
   if (intercept) {
     n_betas <- n_betas + 1
     X <- cbind(1, X)
+    x_names <- c("intercept", x_names)
   }
 
   if (deb) {
@@ -240,17 +242,24 @@ sfa.fit <- function(y, X,
     if (is.null(spec)) {
 
       # fit OLS for starting values of betas and sigma
-      lmfit <- lm.fit(y = y, x = X)
+      lmfit <- lm(y ~ X - 1)
       if (deb) print(summary(lmfit))
 
-      if (dist == "tnorm")
-        start_val <- c(lmfit$coefficients, 0, 1, 1)
-      else
-        start_val <- c(lmfit$coefficients, 1, 1)
+      if (dist == "tnorm") {
+        start_val <- c(lmfit$coefficients,
+                       mu = 0,
+                       sigma_u = 1,
+                       sigma_v = 1)
+      }
+      else {
+        start_val <- c(lmfit$coefficients,
+                       sigma_u = 1,
+                       sigma_v = 1)
+      }
     } else {
 
       # fit OLS for starting values of betas and sigma
-      lmfit <- lm.fit(y = y, x = cbind(X, Z))
+      lmfit <- lm(y ~ X + Z - 1)
       if (deb) print(summary(lmfit))
 
       start_val <-
@@ -310,7 +319,8 @@ sfa.fit <- function(y, X,
                           spec = spec,
                           structure = structure),
               loglik = est$val,
-              hessian = est$hessian)
+              hessian = est$hessian,
+              lmfit = lmfit)
 
   class(fit) <- c("sfa")
 
@@ -321,7 +331,7 @@ sfa.fit <- function(y, X,
 # FORMULA FUNCTION --------------------------------------------------------
 
 #' stochastic frontier analysis
-# export # this API is not ready yet
+# this formula interface is not ready yet
 sfa <- function(formula,
                 data = NULL,
                 intercept = TRUE,
@@ -373,5 +383,31 @@ sfa <- function(formula,
 # SUMMARY FUNCTION --------------------------------------------------------
 #' @export
 summary.sfa <- function(sfa_model) {
+var_beta <- diag(solve(est$hessian))
+
+tstats <- est$coeff/sqrt(var_beta)
+
+pvalues <- 2 * pt(q = abs(tstats),
+                  df = est$N - length(est$par)+3,
+                  lower.tail = FALSE)
+
+coef.table <- round(cbind(est$coeff,
+                          sqrt(var_beta),
+                          tstats,
+                          pvalues),
+                    3)
+colnames(coef.table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
+row.names(coef.table) <- names(est$coeff)
+
+print(coef.table)
+
+ll_sfa <- -est$loglik
+ll_ols <- logLik(lmfit)
+LR_test_stat <- 2*(ll_sfa - ll_ols)[1]
+chisq_df <- (4+3+2) - attributes(logLik(lmfit))$df
+p_value <- pchisq(LR_test_stat, chisq_df, lower.tail = FALSE)
+
+print(LR_test_stat)
+print(p_value)
 
 }

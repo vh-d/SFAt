@@ -7,11 +7,11 @@ vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
----
-
-This document shows and test basic routines of SFAplus package.
-
-```{r}
+  ---
+  
+  This document shows and test basic routines of SFAplus package.
+  
+  ```{r}
 # require(SFAplus)
 # require(msm) # package for drawing from truncated-normal distribution
 # require(data.table) # for more convenient data manipulation
@@ -46,10 +46,11 @@ hist(data1$eps)
 ```{r}
 
 SFAplus::sfa.fit(y = data1$y,
-                        X = cbind(data1$x1, data1$x2),
-                        spec  = NULL,
-                        deb = T
-                        # control_opt = list(maxit = 300)
+                 X = cbind(data1$x1, data1$x2),
+                 Z = NULL,       
+                 spec  = NULL,
+                 deb = T
+                 # control_opt = list(maxit = 300)
 )
 
 ```
