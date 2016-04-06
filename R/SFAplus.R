@@ -381,33 +381,37 @@ sfa <- function(formula,
 
 
 # SUMMARY FUNCTION --------------------------------------------------------
+#' test statistics for SFAplus model
+#' @param sfa_model
 #' @export
 summary.sfa <- function(sfa_model) {
-var_beta <- diag(solve(est$hessian))
 
-tstats <- est$coeff/sqrt(var_beta)
+  coef_sd <- sqrt(diag(solve(sfa_model$hessian)))
 
-pvalues <- 2 * pt(q = abs(tstats),
-                  df = est$N - length(est$par)+3,
-                  lower.tail = FALSE)
+  tstats <- sfa_model$coeff/coef_sd
 
-coef.table <- round(cbind(est$coeff,
-                          sqrt(var_beta),
-                          tstats,
-                          pvalues),
+  pvalues <- 2 * pt(q = abs(tstats),
+                    df = sfa_model$N - length(sfa_model$coeffs),
+                    lower.tail = FALSE)
+
+  coef.table <- round(cbind(sfa_model$coeff,
+                            coef_sd,
+                            tstats,
+                            pvalues),
                     3)
-colnames(coef.table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
-row.names(coef.table) <- names(est$coeff)
+  colnames(coef.table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
+  row.names(coef.table) <- names(sfa_model$coeff)
 
-print(coef.table)
+  print(coef.table)
 
-ll_sfa <- -est$loglik
-ll_ols <- logLik(lmfit)
-LR_test_stat <- 2*(ll_sfa - ll_ols)[1]
-chisq_df <- (4+3+2) - attributes(logLik(lmfit))$df
-p_value <- pchisq(LR_test_stat, chisq_df, lower.tail = FALSE)
+  ll_sfa <- -sfa_model$loglik
+  ll_ols <- logLik(sfa_model$lmfit)
+  LR_test_stat <- 2*(ll_sfa - ll_ols)[1]
+  chisq_df <- length(sfa_model$coeffs) - attributes(logLik(sfa_model$lmfit))$df
+  p_value <- pchisq(LR_test_stat, chisq_df, lower.tail = FALSE)
 
-print(LR_test_stat)
-print(p_value)
+  cat("\n")
+  cat(paste0("LR test: ", round(LR_test_stat, 3)), "\n")
+  cat(paste0("P-value: ", round(p_value, 3)))
 
 }

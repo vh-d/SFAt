@@ -45,14 +45,15 @@ hist(data1$eps)
 
 ```{r}
 
-SFAplus::sfa.fit(y = data1$y,
-                 X = cbind(data1$x1, data1$x2),
-                 Z = NULL,       
-                 spec  = NULL,
-                 deb = T
-                 # control_opt = list(maxit = 300)
+sfa1 <- SFAplus::sfa.fit(y = data1$y,
+                         X = cbind(data1$x1, data1$x2),
+                         Z = NULL,       
+                         spec  = NULL,
+                         deb = T
+                         # control_opt = list(maxit = 300)
 )
 
+SFAplus:::summary.sfa(sfa1)
 ```
 
 
@@ -68,7 +69,7 @@ est <- SFAplus::sfa.fit(y = data1$y,
                         # control_opt = list(maxit = 300)
 )
 
-print(est)
+SFAplus:::summary.sfa(est)
 ```
 
 
