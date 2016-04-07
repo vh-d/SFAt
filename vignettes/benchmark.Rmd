@@ -67,9 +67,9 @@ print(est)
 <!-- ```{r} -->
 <!-- require(sfa) -->
 
-<!-- summary(sfa::sfa(y ~ x1 + x2,  -->
-<!--                  data = dtDT,  -->
-<!--                  fun = "tnormal",  -->
+<!-- summary(sfa::sfa(y ~ x1 + x2, -->
+<!--                  data = as.data.frame(data1), -->
+<!--                  fun = "tnormal", -->
 <!--                  form = "production")) -->
 
 <!-- ``` -->

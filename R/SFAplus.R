@@ -14,16 +14,24 @@ ll_cs_hnorm <- function(params, y, X, ineff, deb) {
   p_sigma2_u <- params[nbetas + 1]
   p_sigma2_v <- params[nbetas + 2]
 
-  epsilon <- -ineff*(y - X %*% p_beta)
+  if (deb) cat("Total of ", length(params), " parameters: \n",
+               "Betas: ", paste(p_beta), "\n",
+               "Sigma_u^2: ", p_sigma2_u,
+               "Sigma_v^2: ", p_sigma2_v, "\n")
+
+  # if (p_sigma2_u <= 0 | p_sigma2_v <= 0) return(1e12)
+
+  epsilon <- -ineff*as.vector(y - X %*% p_beta)
   sigma <- sqrt(p_sigma2_u + p_sigma2_v)
 
   N <- length(y)
 
   ll <-
     -N*log(sigma) +
-    -(N*log(sqrt(2) / sqrt(pi))) + # the const term
-    +sum(log(pnorm(-(epsilon * (sqrt(p_sigma2_u) / sqrt(p_sigma2_u))) / sigma))) +
-    -0.5 * (p_sigma2_u + p_sigma2_v) * sum(epsilon^2)
+    -(N*log(sqrt(2 / pi))) + # the const term
+    +sum(log(pnorm(-(epsilon * sqrt(p_sigma2_u) / sqrt(p_sigma2_v)) / sigma))) - 0.5 / (p_sigma2_u + p_sigma2_v) * sum(epsilon^2)
+
+  if (deb) cat("Log-ll: ", ll, "\n")
 
   return(-ll)
 }
@@ -41,6 +49,13 @@ ll_cs_exp <- function(params, y, X, ineff, deb) {
 
   p_sigma2_u <- params[nbetas + 1]
   p_sigma2_v <- params[nbetas + 2]
+
+  if (deb) cat("Total of ", length(params), " parameters: \n",
+               "Betas: ", paste(p_beta), "\n",
+               "Sigma_u^2: ", p_sigma2_u,
+               "Sigma_v^2: ", p_sigma2_v, "\n")
+
+  if (p_sigma2_u <= 0 | p_sigma2_v <= 0) return(1e12)
 
   epsilon <- -ineff * (y - X %*% p_beta)
   sigma_u <- sqrt(p_sigma2_u)
@@ -74,7 +89,15 @@ ll_cs_tnorm <- function(params, y, X, ineff, deb) {
   p_sigma <- params[nbetas + 2]
   p_lambda <- params[nbetas + 3]
 
-  epsilon <- -ineff * (y - X %*% p_beta)
+  if (deb) cat("Total of ", length(params), " parameters: \n",
+               "Betas: ", paste(p_beta), "\n",
+               "Mu: ", p_mu,
+               "Sigma: ", p_sigma,
+               "Lambda: ", p_lambda, "\n")
+
+  if (p_sigma <= 0 | p_lambda <= 0) return(1e12)
+
+  epsilon <- -ineff * as.vector(y - X %*% p_beta)
   sigma_u <- p_lambda * p_sigma / sqrt(1 + p_lambda^2)
 
   N <- length(y)
@@ -85,6 +108,8 @@ ll_cs_tnorm <- function(params, y, X, ineff, deb) {
       log(pnorm((p_mu / (p_sigma * p_lambda)) - ((epsilon * p_lambda) / p_sigma))) +
         - 0.5 * ((epsilon + p_mu) / p_sigma)^2
     )
+
+  if (deb) cat("Likelihood: ", ll, "\n")
 
   return(-ll)
 }
@@ -149,35 +174,32 @@ ll_cs_tnorm_bc95 <- function(params, y, X, Z, ineff, deb) {
 
   temp_expr1 <- -0.5 * N * (log(2*pi) + log(sigma2))
   temp_expr2 <- -0.5 * sum((-ineff*eps + Zdelta)^2)/sigma2
-  temp_expr3 <- - sum(log(pnorm(Zdelta / sigma_v)))
-  temp_expr4 <- + sum(log(pnorm(mu_ast / sigma_ast)))
-
+  temp_expr3 <- sum(log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_v)))
 
   if (deb) cat("Log-likelihood: ",
                temp_expr1, " + ", temp_expr2, " + ",
-               temp_expr3, " + ", temp_expr4, "\n")
+               temp_expr3, " + ",
+               # temp_expr4,
+               "\n")
 
-  if (is.na(temp_expr3) | is.infinite(temp_expr3)) {
-    if (deb) {
-      cat("Infinite term3...", temp_expr3, "\n")
-    }
-    temp_expr3 <- pmin(log(pnorm(Zdelta / sqrt(sigma2_v))), 6e12)
-    temp_expr3 <- - sum(temp_expr3)
+  # if (is.na(temp_expr3) | is.infinite(temp_expr3)) {
+  #   if (deb) {
+  #     cat("Infinite term3...", temp_expr3, "\n")
+  #   }
+  #
+  #   temp_expr3a <- pmax(log(pnorm(mu_ast / sigma_ast)), -1e20)
+  #   temp_expr3b <- pmax(log(pnorm(Zdelta / sigma_v)), -1e20)
+  #
+  #   temp_expr3 <- sum(temp_expr3a - temp_expr3b)
+  #
+  #   if (deb) cat(temp_expr3, "\n")
+  # }
 
-    if (deb) cat(temp_expr3, "\n")
-  }
+  # result <- temp_expr1 + temp_expr2 + temp_expr3 + temp_expr4
+  result <- temp_expr1 + temp_expr2 + temp_expr3
 
-  if (is.na(temp_expr4) | is.infinite(temp_expr4)) {
-    if (deb) {
-      cat("Infinite term3...", temp_expr4, "\n")
-    }
-    temp_expr4 <- pmax(log(pnorm(mu_ast / sigma_ast)), -6e12)
-    temp_expr4 <- sum(temp_expr4)
+  if (deb) cat("Loglikelihood: ", result,  "\n")
 
-    if (deb) cat(temp_expr4, "\n")
-  }
-
-  result <- temp_expr1 + temp_expr2 + temp_expr3 + temp_expr4
   return(-result)
 }
 
@@ -248,8 +270,8 @@ sfa.fit <- function(y, X,
       if (dist == "tnorm") {
         start_val <- c(lmfit$coefficients,
                        mu = 0,
-                       sigma_u = 1,
-                       sigma_v = 1)
+                       sigma = 1,
+                       lambda = 1)
       }
       else {
         start_val <- c(lmfit$coefficients,
@@ -266,7 +288,7 @@ sfa.fit <- function(y, X,
         c(lmfit$coefficients[1:n_betas],
           if (intercept_Z) 0 else NULL,
           lmfit$coefficients[(n_betas + 1) : (n_betas + n_deltas)],
-          1, 1)
+          2, 2)
 
       if (intercept_Z) {
         # n_deltas <- n_deltas + 1
