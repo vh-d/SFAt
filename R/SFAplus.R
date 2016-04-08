@@ -73,7 +73,7 @@ ll_cs_exp <- function(params, y, X, ineff, deb) {
 }
 
 # likelihood function normal/truncated-normal distributional assumption
-# params: beta, sigma^2, lambda, mu
+# params: beta, mu, sigma, lambda
 ll_cs_tnorm <- function(params, y, X, ineff, deb) {
 
   nbetas <- ncol(X)
@@ -267,20 +267,33 @@ sfa.fit <- function(y, X,
       lmfit <- lm(y ~ X - 1)
       if (deb) print(summary(lmfit))
 
-      if (dist == "tnorm") {
-        start_val <- c(lmfit$coefficients,
-                       mu = 0,
-                       sigma = 1,
-                       lambda = 1)
-      }
-      else {
-        start_val <- c(lmfit$coefficients,
-                       sigma_u = 1,
-                       sigma_v = 1)
-      }
+      start_val <- switch (dist,
+                           tnorm = c(lmfit$coefficients,
+                                     mu = 0,
+                                     sigma = 1,
+                                     lambda = 1),
+                           hnorm = c(lmfit$coefficients,
+                                     var_u = 1,
+                                     var_v = 1),
+                           exp = c(lmfit$coefficients,
+                                   var_u = 1,
+                                   var_v = 1))
+
+      names(start_val)[1:length(x_names)] <- x_names
+      # if (dist == "tnorm") {
+      #   start_val <- c(lmfit$coefficients,
+      #                  mu = 0,
+      #                  sigma = 1,
+      #                  lambda = 1)
+      # }
+      # else {
+      #   start_val <- c(lmfit$coefficients,
+      #                  sigma_u = 1,
+      #                  sigma_v = 1)
+      # }
     } else {
 
-      # fit OLS for starting values of betas and sigma
+      # fit OLS for starting values of beta parameters
       lmfit <- lm(y ~ X + Z - 1)
       if (deb) print(summary(lmfit))
 
@@ -292,8 +305,12 @@ sfa.fit <- function(y, X,
 
       if (intercept_Z) {
         # n_deltas <- n_deltas + 1
-        Z <- cbind(1, Z)
+        Z <- cbind(mu_0 = 1, Z)
       }
+
+      names(start_val) <- c(x_names,
+                            if (is.null(colnames(Z))) paste0("delta_", 1:(n_deltas + intercept_Z)) else colnames(Z),
+                                "sigma_u", "sigma_v")
 
     }
   }
@@ -340,7 +357,7 @@ sfa.fit <- function(y, X,
                           dist = dist,
                           spec = spec,
                           structure = structure),
-              loglik = est$val,
+              loglik = -est$val,
               hessian = est$hessian,
               lmfit = lmfit)
 
@@ -409,31 +426,27 @@ sfa <- function(formula,
 summary.sfa <- function(sfa_model) {
 
   coef_sd <- sqrt(diag(solve(sfa_model$hessian)))
+  coef_tstats <- sfa_model$coeff/coef_sd
+  coef_pvalues <- 2 * pt(q = abs(coef_tstats),
+                         df = sfa_model$N - length(sfa_model$coeffs),
+                         lower.tail = FALSE)
+  coef_table <- round(x = cbind(sfa_model$coeffs,
+                                coef_sd,
+                                coef_tstats,
+                                coef_pvalues),
+                      digits = 3)
+  colnames(coef_table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
+  row.names(coef_table) <- names(sfa_model$coeffs)
 
-  tstats <- sfa_model$coeff/coef_sd
+  print(coef_table)
 
-  pvalues <- 2 * pt(q = abs(tstats),
-                    df = sfa_model$N - length(sfa_model$coeffs),
-                    lower.tail = FALSE)
-
-  coef.table <- round(cbind(sfa_model$coeff,
-                            coef_sd,
-                            tstats,
-                            pvalues),
-                    3)
-  colnames(coef.table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
-  row.names(coef.table) <- names(sfa_model$coeff)
-
-  print(coef.table)
-
-  ll_sfa <- -sfa_model$loglik
-  ll_ols <- logLik(sfa_model$lmfit)
-  LR_test_stat <- 2*(ll_sfa - ll_ols)[1]
-  chisq_df <- length(sfa_model$coeffs) - attributes(logLik(sfa_model$lmfit))$df
-  p_value <- pchisq(LR_test_stat, chisq_df, lower.tail = FALSE)
+  # LR test
+  LR_test_stat <- 2*(sfa_model$loglik - logLik(sfa_model$lmfit))
+  LR_chisq_df <- length(sfa_model$coeffs) - attributes(logLik(sfa_model$lmfit))$df
+  LT_pvalue <- pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
 
   cat("\n")
   cat(paste0("LR test: ", round(LR_test_stat, 3)), "\n")
-  cat(paste0("P-value: ", round(p_value, 3)))
+  cat(paste0("P-value: ", round(LT_pvalue, 3)))
 
 }
