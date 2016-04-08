@@ -19,7 +19,7 @@ ll_cs_hnorm <- function(params, y, X, ineff, deb) {
                "Sigma_u^2: ", p_sigma2_u,
                "Sigma_v^2: ", p_sigma2_v, "\n")
 
-  # if (p_sigma2_u <= 0 | p_sigma2_v <= 0) return(1e12)
+  if (p_sigma2_u <= 0 | p_sigma2_v <= 0) return(abs(min(p_sigma2_v, p_sigma2_u)-0.001)*1e12)
 
   epsilon <- -ineff*as.vector(y - X %*% p_beta)
   sigma <- sqrt(p_sigma2_u + p_sigma2_v)
@@ -31,7 +31,10 @@ ll_cs_hnorm <- function(params, y, X, ineff, deb) {
     -(N*log(sqrt(2 / pi))) + # the const term
     +sum(log(pnorm(-(epsilon * sqrt(p_sigma2_u) / sqrt(p_sigma2_v)) / sigma))) - 0.5 / (p_sigma2_u + p_sigma2_v) * sum(epsilon^2)
 
-  if (deb) cat("Log-ll: ", ll, "\n")
+  if (deb) {
+      if (is.nan(ll)) print(paste(sigma))
+      cat("Log-ll: ", ll, "\n")
+  }
 
   return(-ll)
 }
@@ -294,7 +297,7 @@ sfa.fit <- function(y, X,
     } else {
 
       # fit OLS for starting values of beta parameters
-      lmfit <- lm(y ~ X + Z - 1)
+      lmfit <- lm(y ~ X + I(ineff*Z) - 1)
       if (deb) print(summary(lmfit))
 
       start_val <-
@@ -443,10 +446,11 @@ summary.sfa <- function(sfa_model) {
   # LR test
   LR_test_stat <- 2*(sfa_model$loglik - logLik(sfa_model$lmfit))
   LR_chisq_df <- length(sfa_model$coeffs) - attributes(logLik(sfa_model$lmfit))$df
-  LT_pvalue <- pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
+  LR_pvalue <- pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
 
   cat("\n")
-  cat(paste0("LR test: ", round(LR_test_stat, 3)), "\n")
-  cat(paste0("P-value: ", round(LT_pvalue, 3)))
+  cat(paste0("LR Chisq: ", round(LR_test_stat, 3)), "\n")
+  cat(paste0("Chisq Df: ", round(LR_chisq_df, 3)), "\n")
+  cat(paste0("Pr(>Chisq): ", round(LR_pvalue, 3)))
 
 }
