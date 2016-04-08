@@ -364,7 +364,7 @@ sfa.fit <- function(y, X,
               hessian = est$hessian,
               lmfit = lmfit)
 
-  class(fit) <- c("sfa")
+  class(fit) <- c("SFA")
 
   return(fit)
 }
@@ -374,7 +374,8 @@ sfa.fit <- function(y, X,
 
 #' stochastic frontier analysis
 # this formula interface is not ready yet
-sfa <- function(formula,
+#' @export
+SFA <- function(formula,
                 data = NULL,
                 intercept = TRUE,
                 intercept_Z = TRUE,
@@ -424,28 +425,34 @@ sfa <- function(formula,
 
 # SUMMARY FUNCTION --------------------------------------------------------
 #' test statistics for SFAplus model
-#' @param sfa_model
 #' @export
-summary.sfa <- function(sfa_model) {
+summary.SFA <- function(object) {
 
-  coef_sd <- sqrt(diag(solve(sfa_model$hessian)))
-  coef_tstats <- sfa_model$coeff/coef_sd
+  coef_sd <- sqrt(diag(solve(object$hessian)))
+  coef_tstats <- object$coeff/coef_sd
   coef_pvalues <- 2 * pt(q = abs(coef_tstats),
-                         df = sfa_model$N - length(sfa_model$coeffs),
+                         df = object$N - length(object$coeffs),
                          lower.tail = FALSE)
-  coef_table <- round(x = cbind(sfa_model$coeffs,
+  coef_table <- round(x = cbind(object$coeffs,
                                 coef_sd,
                                 coef_tstats,
                                 coef_pvalues),
                       digits = 3)
   colnames(coef_table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
-  row.names(coef_table) <- names(sfa_model$coeffs)
+  row.names(coef_table) <- names(object$coeffs)
 
   print(coef_table)
 
   # LR test
-  LR_test_stat <- 2*(sfa_model$loglik - logLik(sfa_model$lmfit))
-  LR_chisq_df <- length(sfa_model$coeffs) - attributes(logLik(sfa_model$lmfit))$df
+}
+
+# LR test function --------------------------------------------------------
+#' LR test for SFA class
+#' @export
+lrtest.SFA <- function(object) {
+
+  LR_test_stat <- 2*(object$loglik - logLik(object$lmfit))
+  LR_chisq_df <- length(object$coeffs) - attributes(logLik(object$lmfit))$df
   if (LR_chisq_df > 1) {
     LR_pvalue <-
       0.25*pchisq(LR_test_stat, LR_chisq_df-2, lower.tail = FALSE) +
@@ -461,5 +468,4 @@ summary.sfa <- function(sfa_model) {
   cat(paste0("LR Chisq: ", round(LR_test_stat, 3)), "\n")
   cat(paste0("Chisq Df: ", round(LR_chisq_df, 3)), "\n")
   cat(paste0("Pr(>Chisq): ", round(LR_pvalue, 3)))
-
 }

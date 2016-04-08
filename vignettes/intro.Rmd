@@ -48,13 +48,14 @@ hist(data1$eps)
 sfa1 <- SFAplus::sfa.fit(y = data1$y,
                          X = cbind(a = data1$x1, b = data1$x2),
                          Z = NULL,    
-                         dist = "exp",
+                         dist = "hnorm",
                          spec  = NULL,
-                         deb = T,
+                         deb = F,
                          # control_opt = list(maxit = 300)
 )
 
-SFAplus:::summary.sfa(sfa1)
+summary(sfa1)
+lrtest(sfa1)
 ```
 
 
