@@ -446,7 +446,16 @@ summary.sfa <- function(sfa_model) {
   # LR test
   LR_test_stat <- 2*(sfa_model$loglik - logLik(sfa_model$lmfit))
   LR_chisq_df <- length(sfa_model$coeffs) - attributes(logLik(sfa_model$lmfit))$df
-  LR_pvalue <- pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
+  if (LR_chisq_df > 1) {
+    LR_pvalue <-
+      0.25*pchisq(LR_test_stat, LR_chisq_df-2, lower.tail = FALSE) +
+      0.5*pchisq(LR_test_stat, LR_chisq_df-1, lower.tail = FALSE) +
+      0.25*pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
+  } else {
+    LR_pvalue <-
+      0.5*pchisq(LR_test_stat, LR_chisq_df-1, lower.tail = FALSE) +
+      0.5*pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
+  }
 
   cat("\n")
   cat(paste0("LR Chisq: ", round(LR_test_stat, 3)), "\n")
