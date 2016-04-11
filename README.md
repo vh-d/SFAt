@@ -7,6 +7,7 @@ to-do:
 ------
 
 - rewrite tnorm model with sigma2_v, sigma2_u
+- add confidence intervals of inefficiency and coefficients
 - firm specific intercepts in (Battese-Coelli, 1995) model
 - sfa() funtion with Formula interface 
 - rewrite likelihood functions in C++ (using Rcpp)
