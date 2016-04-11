@@ -38,7 +38,7 @@ ll_cs_exp <- function(params, y, X, ineff, deb) {
   return(-ll)
 }
 
-u_cs_exp <- function(object, type) {
+u_cs_exp <- function(object, type = "JLMS") {
 
   # extract sigmas from model object
   sigma2_u <- object$parameters[length(object$coefficients) + 1]
@@ -49,7 +49,7 @@ u_cs_exp <- function(object, type) {
   mu_ast <- object$ineff * object$residuals - sigma2_v / sigma_u
 
   u <- switch(type,
-              # ME = pmax(mu_ast, 0),
+              ME = pmax(mu_ast, 0),
               # BC = -log(exp(-mu_ast + 0.5 * sigma_ast^2)*(pnorm(-sigma_ast + mu_ast/sigma_ast)/pnorm(mu_ast/sigma_ast))),
               JLMS = mu_ast + sigma_v*dnorm(mu_ast/sigma_v)/pnorm(mu_ast/sigma_v))
   if (is.null(u)) stop(paste0("Unknown type ", type ," of conditional mean estimator."))
