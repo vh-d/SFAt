@@ -55,7 +55,11 @@ sfa1 <- SFAplus::sfa.fit(y = data1$y,
 )
 
 summary(sfa1)
-lrtest(sfa1)
+```
+
+
+```{r}
+hist(SFAplus:::u_cs_hnorm(est, "BC"))
 ```
 
 
@@ -71,7 +75,11 @@ est <- SFAplus::sfa.fit(y = data1$y,
                         # control_opt = list(maxit = 300)
 )
 
-SFAplus:::summary.sfa(est)
+summary(est)
+```
+
+```{r}
+hist(SFAplus:::u_cs_tnorm_bc95(est, "BC"))
 ```
 
 

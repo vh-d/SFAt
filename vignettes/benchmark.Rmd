@@ -100,7 +100,7 @@ data("front41Data")
 sfa2 <- SFAplus::sfa.fit(y = log(front41Data$output), 
                          X = cbind(capital = log(front41Data$capital), 
                                    labour = log(front41Data$labour)), 
-                         dist = "hnorm",
+                         dist = "tnorm",
                          spec = NULL,
                          deb = F)
 
@@ -114,5 +114,6 @@ sfa2_front <- frontier::sfa( log( output ) ~ log( capital ) + log( labour ),
                              data = front41Data )
 
 summary(sfa2_front)
+lrtest(sfa2_front)
 ```
 

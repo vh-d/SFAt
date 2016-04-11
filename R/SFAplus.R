@@ -1,212 +1,3 @@
-# LIKELIHOOD FUNCTIONS -----------------------------------------------------
-
-# likelihood function normal/half-normal distributional assumption
-# params: beta, sigma_u^2, sigma_v^2
-ll_cs_hnorm <- function(params, y, X, ineff, deb) {
-  nbetas <- ncol(X)
-
-  if (length(params) != nbetas + 2) {
-    stop("Incorrect nuber of parameters. ", nbetas + 2, " needed, but ", length(params), " supplied.")
-  }
-
-  p_beta <- params[1:nbetas]
-
-  p_sigma2_u <- params[nbetas + 1]
-  p_sigma2_v <- params[nbetas + 2]
-
-  if (deb) cat("Total of ", length(params), " parameters: \n",
-               "Betas: ", paste(p_beta), "\n",
-               "Sigma_u^2: ", p_sigma2_u,
-               "Sigma_v^2: ", p_sigma2_v, "\n")
-
-  if (p_sigma2_u <= 0 | p_sigma2_v <= 0) return(abs(min(p_sigma2_v, p_sigma2_u)-0.001)*1e12)
-
-  epsilon <- -ineff*as.vector(y - X %*% p_beta)
-  sigma <- sqrt(p_sigma2_u + p_sigma2_v)
-
-  N <- length(y)
-
-  ll <-
-    -N*log(sigma) +
-    -(N*log(sqrt(2 / pi))) + # the const term
-    +sum(log(pnorm(-(epsilon * sqrt(p_sigma2_u) / sqrt(p_sigma2_v)) / sigma))) - 0.5 / (p_sigma2_u + p_sigma2_v) * sum(epsilon^2)
-
-  if (deb) {
-      if (is.nan(ll)) print(paste(sigma))
-      cat("Log-ll: ", ll, "\n")
-  }
-
-  return(-ll)
-}
-
-# likelihood function normal/exponential distributional assumption
-# params: beta, sigma_u^2, sigma_v^2
-ll_cs_exp <- function(params, y, X, ineff, deb) {
-  nbetas <- ncol(X)
-
-  if (length(params) != nbetas + 2) {
-    stop("Incorrect nuber of parameters. ", nbetas + 2, " needed, but ", length(params), " supplied.")
-  }
-
-  p_beta <- params[1:nbetas]
-
-  p_sigma2_u <- params[nbetas + 1]
-  p_sigma2_v <- params[nbetas + 2]
-
-  if (deb) cat("Total of ", length(params), " parameters: \n",
-               "Betas: ", paste(p_beta), "\n",
-               "Sigma_u^2: ", p_sigma2_u,
-               "Sigma_v^2: ", p_sigma2_v, "\n")
-
-  if (p_sigma2_u <= 0 | p_sigma2_v <= 0) return(1e12)
-
-  epsilon <- -ineff * (y - X %*% p_beta)
-  sigma_u <- sqrt(p_sigma2_u)
-  sigma_v <- sqrt(p_sigma2_v)
-
-  N <- length(y)
-
-  ll <-
-    - N * log(sigma_u) +
-    0.5 * N * (p_sigma2_v / p_sigma2_u) +
-    sum(log(pnorm(-(epsilon + (p_sigma2_v / sigma_u)) / sigma_v))) +
-    sum(epsilon) / sigma_u
-
-  return(-ll)
-}
-
-# likelihood function normal/truncated-normal distributional assumption
-# params: beta, mu, sigma, lambda
-ll_cs_tnorm <- function(params, y, X, ineff, deb) {
-
-  nbetas <- ncol(X)
-
-  if (length(params) != nbetas + 3) {
-    stop("Incorrect nuber of parameters. ", nbetas + 3, " needed, but ", length(params), " supplied.")
-  }
-
-  p_beta <- params[1:nbetas]
-
-  p_mu <- params[nbetas + 1]
-
-  p_sigma <- params[nbetas + 2]
-  p_lambda <- params[nbetas + 3]
-
-  if (deb) cat("Total of ", length(params), " parameters: \n",
-               "Betas: ", paste(p_beta), "\n",
-               "Mu: ", p_mu,
-               "Sigma: ", p_sigma,
-               "Lambda: ", p_lambda, "\n")
-
-  if (p_sigma <= 0 | p_lambda <= 0) return(1e12)
-
-  epsilon <- -ineff * as.vector(y - X %*% p_beta)
-  sigma_u <- p_lambda * p_sigma / sqrt(1 + p_lambda^2)
-
-  N <- length(y)
-
-  ll <-
-    - N * (0.5 * log(2*pi) + log(p_sigma) + log(pnorm(p_mu/sigma_u))) +
-    sum(
-      log(pnorm((p_mu / (p_sigma * p_lambda)) - ((epsilon * p_lambda) / p_sigma))) +
-        - 0.5 * ((epsilon + p_mu) / p_sigma)^2
-    )
-
-  if (deb) cat("Likelihood: ", ll, "\n")
-
-  return(-ll)
-}
-
-
-# likelihood function normal/gamma distributional assumption
-# ll_gamma <- function() {
-#
-# }
-
-
-# Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
-# heterogeneity in efficiency term: endogeneous location parameter mu
-# implemented as Hadri et al. 2003
-# parameters: p_beta, p_delta, p_sigma_w, p_sigma_v
-ll_cs_tnorm_bc95 <- function(params, y, X, Z, ineff, deb) {
-
-  # extract parameters from parameter vector
-  nbetas <- ncol(X) # number of beta coeffs
-  ndeltas <- ncol(Z) # number of delta coeffs
-
-  if (length(params) != nbetas + ndeltas + 2) {
-    stop("Incorrect nuber of parameters. ",
-         nbetas, "+", ndeltas, "+ 2 needed, but ", length(params), " supplied.")
-  }
-
-  p_beta <- params[1:nbetas]
-  p_delta <- params[(nbetas + 1):(nbetas + ndeltas)]
-
-  sigma2_v <- params[(nbetas + ndeltas + 1)] # variance of inefficiency term
-  sigma2_w <- params[(nbetas + ndeltas + 2)] # variance of symmetric error term
-
-  if (deb) cat("Total of ", length(params), " parameters: \n",
-               "Betas: ", paste(p_beta), "\n",
-               "Deltas: ", paste(p_delta), "\n",
-               "Sigma2_v: ", sigma2_v,
-               "Sigma2_w: ", sigma2_w, "\n")
-
-  # penalize negative variance parameters
-  if (sigma2_w <= 0 | sigma2_v <= 0 ) {
-    if (deb) {
-      cat("One of the sigmas is not positive...", sigma2_w, " or ", sigma2_v)
-    }
-    return(1e12)
-  }
-
-  N <- length(y)
-
-  sigma2 <- sigma2_w + sigma2_v # variance of composite error term
-
-  sigma_v <- sqrt(sigma2_v)
-  sigma_w <- sqrt(sigma2_w)
-  sigma <- sqrt(sigma2)
-
-  sigma_ast <- sigma_v * sigma_w / sigma
-
-  Zdelta <- as.vector(Z %*% p_delta) # fitted means of inefficiency term
-
-  eps <- as.vector(y - (X %*% p_beta)) # composite error terms
-
-  mu_ast <- (sigma2_w*Zdelta - sigma2_v*eps) / sigma2
-
-  temp_expr1 <- -0.5 * N * (log(2*pi) + log(sigma2))
-  temp_expr2 <- -0.5 * sum((-ineff*eps + Zdelta)^2)/sigma2
-  temp_expr3 <- sum(log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_v)))
-
-  if (deb) cat("Log-likelihood: ",
-               temp_expr1, " + ", temp_expr2, " + ",
-               temp_expr3, " + ",
-               # temp_expr4,
-               "\n")
-
-  # if (is.na(temp_expr3) | is.infinite(temp_expr3)) {
-  #   if (deb) {
-  #     cat("Infinite term3...", temp_expr3, "\n")
-  #   }
-  #
-  #   temp_expr3a <- pmax(log(pnorm(mu_ast / sigma_ast)), -1e20)
-  #   temp_expr3b <- pmax(log(pnorm(Zdelta / sigma_v)), -1e20)
-  #
-  #   temp_expr3 <- sum(temp_expr3a - temp_expr3b)
-  #
-  #   if (deb) cat(temp_expr3, "\n")
-  # }
-
-  # result <- temp_expr1 + temp_expr2 + temp_expr3 + temp_expr4
-  result <- temp_expr1 + temp_expr2 + temp_expr3
-
-  if (deb) cat("Loglikelihood: ", result,  "\n")
-
-  return(-result)
-}
-
-
 # MAIN FUNCTION -----------------------------------------------------------
 
 #' sfa.fit
@@ -261,8 +52,6 @@ sfa.fit <- function(y, X,
 
   # STARTING VALUES
 
-  # lmfit <- lm.fit(y = y, x = X)
-
   if (is.null(start_val)) {
     if (is.null(spec)) {
 
@@ -283,17 +72,6 @@ sfa.fit <- function(y, X,
                                    var_v = 1))
 
       names(start_val)[1:length(x_names)] <- x_names
-      # if (dist == "tnorm") {
-      #   start_val <- c(lmfit$coefficients,
-      #                  mu = 0,
-      #                  sigma = 1,
-      #                  lambda = 1)
-      # }
-      # else {
-      #   start_val <- c(lmfit$coefficients,
-      #                  sigma_u = 1,
-      #                  sigma_v = 1)
-      # }
     } else {
 
       # fit OLS for starting values of beta parameters
@@ -313,8 +91,7 @@ sfa.fit <- function(y, X,
 
       names(start_val) <- c(x_names,
                             if (is.null(colnames(Z))) paste0("delta_", 1:(n_deltas + intercept_Z)) else colnames(Z),
-                                "sigma_u", "sigma_v")
-
+                                "sigma2_u", "sigma2_v")
     }
   }
 
@@ -324,7 +101,6 @@ sfa.fit <- function(y, X,
                                     structure, "_",
                                     dist,
                                     if (is.null(spec)) NULL else paste0("_", spec)))
-
 
   # lowerb <- c(rep(-Inf, n_betas + n_deltas), 0.000001, 0.000001)
 
@@ -351,9 +127,14 @@ sfa.fit <- function(y, X,
                deb = deb)
   }
 
-  fit <- list(coeffs = est$par,
+  result <- list(coefficients = est$par[1:n_betas],
+              coefficients_Z = est$par[(n_betas + 1) : (n_betas + n_deltas + intercept_Z)],
+              residuals = as.vector(y - X %*% est$par[1:n_betas]),
+              parameters = est$par,
               N = length(y),
-              ineff_name = ifelse(ineff == -1, "production", "cost"),
+              ineff = ineff,
+              ineff_name = if (ineff == -1) "production" else "cost",
+              data = list(y = y, X = X, Z = Z),
               call = list(ineff = ineff,
                           intercept = intercept,
                           intercept_Z = intercept_Z,
@@ -364,9 +145,9 @@ sfa.fit <- function(y, X,
               hessian = est$hessian,
               lmfit = lmfit)
 
-  class(fit) <- c("SFA")
+  class(result) <- c("SFA")
 
-  return(fit)
+  return(result)
 }
 
 
@@ -429,21 +210,22 @@ SFA <- function(formula,
 summary.SFA <- function(object) {
 
   coef_sd <- sqrt(diag(solve(object$hessian)))
-  coef_tstats <- object$coeff/coef_sd
+  coef_tstats <- object$parameters/coef_sd
   coef_pvalues <- 2 * pt(q = abs(coef_tstats),
-                         df = object$N - length(object$coeffs),
+                         df = object$N - length(object$parameters),
                          lower.tail = FALSE)
-  coef_table <- round(x = cbind(object$coeffs,
+  coef_table <- round(x = cbind(object$parameters,
                                 coef_sd,
                                 coef_tstats,
                                 coef_pvalues),
                       digits = 3)
   colnames(coef_table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
-  row.names(coef_table) <- names(object$coeffs)
+  row.names(coef_table) <- names(object$parameters)
 
-  print(coef_table)
+  print(coef_table[1:length(object$coefficients),])
 
   # LR test
+  lrtest(object)
 }
 
 # LR test function --------------------------------------------------------
@@ -452,7 +234,7 @@ summary.SFA <- function(object) {
 lrtest.SFA <- function(object) {
 
   LR_test_stat <- 2*(object$loglik - logLik(object$lmfit))
-  LR_chisq_df <- length(object$coeffs) - attributes(logLik(object$lmfit))$df
+  LR_chisq_df <- length(object$parameters) - attributes(logLik(object$lmfit))$df
   if (LR_chisq_df > 1) {
     LR_pvalue <-
       0.25*pchisq(LR_test_stat, LR_chisq_df-2, lower.tail = FALSE) +
