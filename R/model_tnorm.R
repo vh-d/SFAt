@@ -1,9 +1,7 @@
 # NORMAL / T-NORMAL - HOMOSCEDASTIC - CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm <- c(sigma = 1, lambda = 1)
+par_cs_tnorm <- c(sigma_u = 1, sigma_v = 1)
 
-# likelihood function normal/truncated-normal distributional assumption
-# params: beta, mu, sigma, lambda
 ll_cs_tnorm <- function(params, y, X, ineff, deb) {
 
   nbetas <- ncol(X)
@@ -15,35 +13,45 @@ ll_cs_tnorm <- function(params, y, X, ineff, deb) {
   beta_coef <- params[1:nbetas]
 
   mu <- params[nbetas + 1]
-
-  sigma <- params[nbetas + 2]
-  lambda <- params[nbetas + 3]
+  sigma_u <- params[nbetas + 2]
+  sigma_v <- params[nbetas + 3]
 
   if (deb) cat("Total of ", length(params), " parameters: \n",
                "Betas: ", paste(beta_coef), "\n",
                "Mu: ", mu,
-               "Sigma: ", sigma,
-               "Lambda: ", lambda, "\n")
+               "Sigma_u: ", sigma_u,
+               "Sigma_v: ", sigma_v, "\n")
 
-  if (sigma <= 0 | lambda <= 0) return(1e12)
+  if (sigma_u <= 0 | sigma_v <= 0) return(1e12)
 
   epsilon <- -ineff * as.vector(y - X %*% beta_coef)
-  sigma_u <- lambda * sigma / sqrt(1 + lambda^2)
+  lambda <- sigma_u / sigma_v
+  sigma <- sqrt(sigma_u^2 + sigma_v^2)
+
+  if (deb) cat("lambda: ", lambda,
+               "sigma: ", sigma, "\n")
 
   N <- length(y)
 
   ll <-
-    - N * (0.5 * log(2*pi) + log(sigma) + log(pnorm(mu/sigma_u))) +
+    - N * (log(sigma) + 0.5*log(2*pi) + log(pnorm(mu/sigma_u))) +
     sum(
-      log(pnorm((mu / (sigma * lambda)) - ((epsilon * lambda) / sigma))) +
-        - 0.5 * ((epsilon + mu) / sigma)^2
+      log(pnorm((mu / (sigma*lambda)) - ((epsilon*lambda) / sigma))) +
+        -0.5*((epsilon + mu) / sigma)^2
     )
+
+  # Kumbhakar 2014 has this function that is actually much more stable
+  # ll <-
+  #   - N * (log(sigma) + log(pnorm(mu/sigma_u))) +
+  #   sum(
+  #     log(pnorm((mu / (sigma*lambda)) - ((epsilon*lambda) / sigma))) +
+  #       -((epsilon + mu) / sigma)^2
+  #   )
 
   if (deb) cat("Likelihood: ", ll, "\n")
 
   return(-ll)
 }
-
 u_cs_tnorm <- function(object, type) {
   # extract sigmas from model object
   mu <- object$parameters[length(object$coefficients) + 1]
