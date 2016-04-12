@@ -1,4 +1,4 @@
-Package: SFAp
+Package: SFA
 Type: Package
 Title: Stochastic frontier analysis with (potentially heterogenous) cross-section and panel data
 Version: 0.1.1
