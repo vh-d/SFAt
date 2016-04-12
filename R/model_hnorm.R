@@ -27,8 +27,8 @@ ll_cs_hnorm <- function(params, y, X, ineff, deb) {
   N <- length(y)
 
   ll <-
+    -(N*log(pi/2)) + # the const term
     -N*log(sigma) +
-    -(N*log(sqrt(2 / pi))) + # the const term
     +sum(log(pnorm(-(epsilon * sqrt(sigma2_u) / sqrt(sigma2_v)) / sigma))) - 0.5 / (sigma2_u + sigma2_v) * sum(epsilon^2)
 
   if (deb) {
