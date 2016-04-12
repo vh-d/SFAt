@@ -1,4 +1,4 @@
-par_cs_hnorm <- c(sigma2_u = 1, sigma2_u = 1)
+par_cs_hnorm <- c(sigma2_u = 1, sigma2_v = 1)
 
 # likelihood function normal/half-normal distributional assumption
 # params: beta, sigma_u^2, sigma_v^2
