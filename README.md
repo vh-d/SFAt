@@ -1,4 +1,4 @@
-SFAplus package
+SFAp package
 ===============
 
 This package is an alpha release and therefore is not yet ready for regular use.
