@@ -1,7 +1,7 @@
 Package: SFAs
 Type: Package
 Title: Stochastic frontier analysis with (potentially heterogenous) cross-section and panel data
-Version: 0.1.1
+Version: 0.1.2
 Author: Vaclav Hausenblas
 Maintainer: Vaclav Hausenblas <vaclav.hausenblas@gmail.com>
 Description: Comprehensive collection of routines for estimating SFA (Stochastic frontier analysis) models on both cross-section and panel data with heterogeneity.
