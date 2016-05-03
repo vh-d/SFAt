@@ -1,6 +1,6 @@
-Package: SFAs
+Package: SFAt
 Type: Package
-Title: Stochastic frontier analysis with (potentially heterogenous) cross-section and panel data
+Title: Stochastic frontier analysis package using traditional statistical methods on (potentially heterogenous) cross-section and panel data
 Version: 0.1.2
 Author: Vaclav Hausenblas
 Maintainer: Vaclav Hausenblas <vaclav.hausenblas@gmail.com>

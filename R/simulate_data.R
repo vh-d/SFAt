@@ -1,7 +1,7 @@
 #' @export
 sim_data <- function(N = 500,
                      x_coeff = c(10, 6, 3),
-                     z_coeff = c(5, 1.5, -0.9),
+                     z_coeff = c(3, 1.5, 0.5),
                      sigma_u = 2,
                      sigma_v = 3,
                      ineff = -1,
@@ -117,7 +117,9 @@ sim_panel_data <- function(obs = 10,
   y <- as.vector( cbind(1, X) %*% x_coeff) + eps
 
   if (aslist) {
-    return(list(y = y, X = X, Z = Z, u = u, v = v, eps = eps))
+    return(list(y = y, X = X, Z = Z,
+                u = u, v = v, eps = eps,
+                N = N, obs = obs, k = k))
   } else
     return(cbind(y, X, Z, u, v, eps))
 }
