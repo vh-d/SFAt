@@ -23,9 +23,9 @@ vignette: >
 Lets generate some randomly simulated production data,
 
 ```{r}
-source("simulate_data.R")
-
-data1 <- as.data.frame(sim_data(1000))
+# source("simulate_data.R")
+require(SFAt)
+data1 <- as.data.frame(sim_data(1000, z_coeff = c(15, 1, 1)))
 
 ```
 
@@ -45,7 +45,7 @@ hist(data1$eps)
 
 ```{r}
 
-sfa1 <- SFAp::sfa.fit(y = data1$y,
+sfa1 <- SFAt::sfa.fit(y = data1$y,
                       X = cbind(a = data1$x1, b = data1$x2),
                       Z = NULL,    
                       dist = "hnorm",
@@ -59,7 +59,7 @@ summary(sfa1)
 
 
 ```{r}
-hist(SFAplus:::u_cs_hnorm(est, "BC"))
+hist(SFAt:::u_cs_hnorm(sfa1, "BC"))
 ```
 
 
@@ -67,19 +67,24 @@ hist(SFAplus:::u_cs_hnorm(est, "BC"))
 
 ```{r}
 
-est <- SFAplus::sfa.fit(y = data1$y,
-                        X = cbind(a = data1$x1, b = data1$x2),
-                        Z = cbind(c = data1$z1, d = data1$z2),
-                        spec  = "bc95",
-                        deb = F,
-                        # control_opt = list(maxit = 300)
+est <- SFAt::sfa.fit(y = data1$y,
+                     X = cbind(a = data1$x1, b = data1$x2),
+                     Z = cbind(c = data1$z1, d = data1$z2),
+                     dist = "tnorm",
+                     spec  = "bc95",
+                     deb = F,
+                     # opt_method = "Nelder-Mead",
+                     opt_method = "L-BFGS-B",
+                     control_opt = list(maxit = 5000)
 )
 
+est$coefficients
+est$coefficients_Z
 summary(est)
 ```
 
 ```{r}
-hist(SFAplus:::u_cs_tnorm_bc95(est, "BC"))
+hist(SFAt:::u_cs_tnorm_bc95(est, "BC"))
 ```
 
 
