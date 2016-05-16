@@ -16,6 +16,10 @@ lrtest.SFA <- function(object) {
       0.5*pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
   }
 
+  cat("Likelihood ratio test:\n",
+      "======================\n",
+      "Null-model: OLS\n")
+
   cat("\n")
   cat(paste0("LR Chisq: ", round(LR_test_stat, 3)), "\n")
   cat(paste0("Chisq Df: ", round(LR_chisq_df, 3)), "\n")
