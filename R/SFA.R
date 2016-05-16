@@ -261,7 +261,7 @@ summary.SFA <- function(object) {
                                 coef_conf_high),
                       digits = 3)
 
-  colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high")
+  colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high)")
   row.names(coef_table) <- names(object$parameters)
 
   # print(coef_table[1:length(object$coeff),])
