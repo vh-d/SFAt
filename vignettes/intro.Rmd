@@ -11,24 +11,24 @@ vignette: >
   
   This document shows and test basic routines of SFAplus package.
   
+  ```{r Init}
+  require(SFAt)
+  # require(msm) # package for drawing from truncated-normal distribution
+  # require(data.table) # for more convenient data manipulation
+  ```
+  
+  
+  ## Basic SFA models
+  
+  ### Example dataset
+  
+  Lets generate some randomly simulated production data,
+  
   ```{r}
-# require(SFAplus)
-# require(msm) # package for drawing from truncated-normal distribution
-# require(data.table) # for more convenient data manipulation
-```
-
-
-### Example dataset
-
-Lets generate some randomly simulated production data,
-
-```{r}
-# source("simulate_data.R")
-require(SFAt)
-data1 <- as.data.frame(sim_data_cs(1000, 
-                                   x_coeff = c(50, 4, 2), 
-                                   z_coeff = c(20), 
-                                   sigma_u = 20, sigma_v = 5))
+data_ex1 <- as.data.frame(sim_data_cs(1000, 
+x_coeff = c(50, 4, 2), 
+z_coeff = c(20), 
+sigma_u = 20, sigma_v = 5))
 
 ```
 
@@ -38,40 +38,41 @@ and explore the production data and simulated inefficiency term.
 # require(GGally)
 # ggpairs(dtDT)
 
-# plot(data1)
-hist(data1$y)
-# hist(data1$u)
-# hist(data1$eps)
+plot(data_ex1)
+hist(data_ex1$y)
+hist(data_ex1$u)
+hist(data_ex1$eps)
 
 ```
+
 ## SFA -- normal/t-normal model
 
 ```{r}
 
-sfa1 <- SFAt::sfa.fit(y = data1$y,
-                      X = cbind(a = data1$x1, b = data1$x2),
-                      CM = NULL,    
-                      dist = "tnorm",
-                      spec  = NULL,
-                      deb = F,
-                      opt_method = "SANN"
-                      # control_opt = list(maxit = 300)
+model_ex1 <- sfa.fit(y = data_ex1$y,
+                     X = cbind(a = data_ex1$x1, b = data_ex1$x2),
+                     CM = NULL,    
+                     dist = "tnorm",
+                     spec  = NULL,
+                     deb = F,
+                     opt_method = "L-BF"
+                     # control_opt = list(maxit = 300)
 )
 
-summary(sfa1)
+print(summary(model_ex1))
 ```
 
 
 ```{r}
-ineff_fit <- inefficiencyTerm(sfa1, estimator = "JLMS")
+ineff_fit <- inefficiencyTerm(model_ex1, estimator = "JLMS")
 hist(ineff_fit)
 ```
 
 Check for separation of frontier and actual production data
 ```{r}
-pr <- predict(sfa1, type = "frontier")
-hist(pr, xlim = c(0, max(data1$y)))
-hist(data1$y, xlim = c(0, max(data1$y)))
+pr <- predict(model_ex1, type = "frontier")
+hist(pr, xlim = c(0, max(data_ex1$y)))
+hist(data_ex1$y, xlim = c(0, max(data_ex1$y)))
 ```
 
 ```{r}
@@ -85,50 +86,67 @@ hist(ineff_scaled)
 ```
 
 ```{r}
-hist(efficiency(sfa1))
+hist(efficiency(model_ex1))
 ```
 
 ## SFA model with endogenous inefficiency mean 
 
+### Generate random cross-section dataset
 ```{r}
-data2 <- as.data.frame(sim_data_cs(1000, 
-                                   x_coeff = c(50, 4, 2), 
-                                   z_coeff = c(20, -2, 2), 
-                                   sigma_u = 10, sigma_v = 5))
+data_ex2_cm <- as.data.frame(sim_data_cs(1000, 
+                                         x_coeff = c(50, 4, 2), 
+                                         z_coeff = c(20, -2, 2), 
+                                         sigma_u = 10, sigma_v = 5))
 
 ```
 
+### Fit BC95 model
 ```{r}
 
-est <- SFAt::sfa.fit(y = data2$y,
-                     X = cbind(a = data2$x1, b = data2$x2),
-                     CM = cbind(c = data2$z1, d = data2$z2),
+model_ex2 <- sfa.fit(y = data_ex2_cm$y,
+                     X = cbind(a = data_ex2_cm$x1, b = data_ex2_cm$x2),
+                     CM = cbind(c = data_ex2_cm$z1, d = data_ex2_cm$z2),
                      dist = "tnorm",
                      spec  = "bc95",
                      deb = F,
-                     opt_method = "L-BFGS-B",
-                     control_opt = list(maxit = 6000)
-)
+                     opt_method = "SANN",
+                     control_opt = list(maxit = 6000))
 
-est$coefficients
-est$coefficients_Z
-summary(est)
+print(model_ex2$coefficients)
+print(model_ex2$coefficients_Z)
+print(summary(model_ex2))
 ```
+
+### Fitted inefficiency term ($E(u_i|\epsilon_i)$)
 
 ```{r}
-hist(SFAt:::u_cs_tnorm_bc95(est, "BC"))
+ex2_ineff_term <- predict(model_ex2, 
+                          type = "inefficiency", 
+                          estimator = "JLMS")
+
+hist(ex2_ineff_term)
 ```
 
-
-## OLS model
-
-We might be interested in simple OLS model for LR test (and starting values of parameters).
-
+### Fitted efficiency (%)
 ```{r}
+ex2_efficiencies <- predict(model_ex2, 
+                            type = "efficiency", 
+                            estimator = "JLMS")
 
-lmfit <- lm(y ~ x1 + x2 + I(-z1) + I(-z2), data = data1)
-summary(lmfit)
-
+hist(ex2_efficiencies)
 ```
+
+
+
+<!-- ## OLS model -->
+
+<!-- We might be interested in simple OLS model for skew test / LR test (and starting values of parameters). -->
+
+<!-- ```{r} -->
+
+<!-- lmfit <- lm(y ~ x1 + x2 + I(-z1) + I(-z2), data = data_ex2_cm) -->
+<!-- summary(lmfit) -->
+
+<!-- ``` -->
 
 
