@@ -25,7 +25,10 @@ Lets generate some randomly simulated production data,
 ```{r}
 # source("simulate_data.R")
 require(SFAt)
-data1 <- as.data.frame(sim_data(1000, z_coeff = c(15, 1, 1)))
+data1 <- as.data.frame(sim_data_cs(1000, 
+                                   x_coeff = c(50, 4, 2), 
+                                   z_coeff = c(20), 
+                                   sigma_u = 20, sigma_v = 5))
 
 ```
 
@@ -35,10 +38,10 @@ and explore the production data and simulated inefficiency term.
 # require(GGally)
 # ggpairs(dtDT)
 
-plot(data1)
+# plot(data1)
 hist(data1$y)
-hist(data1$u)
-hist(data1$eps)
+# hist(data1$u)
+# hist(data1$eps)
 
 ```
 ## SFA -- normal/t-normal model
@@ -47,10 +50,11 @@ hist(data1$eps)
 
 sfa1 <- SFAt::sfa.fit(y = data1$y,
                       X = cbind(a = data1$x1, b = data1$x2),
-                      Z = NULL,    
-                      dist = "hnorm",
+                      CM = NULL,    
+                      dist = "tnorm",
                       spec  = NULL,
                       deb = F,
+                      opt_method = "SANN"
                       # control_opt = list(maxit = 300)
 )
 
@@ -59,23 +63,51 @@ summary(sfa1)
 
 
 ```{r}
-hist(SFAt:::u_cs_hnorm(sfa1, "BC"))
+ineff_fit <- inefficiencyTerm(sfa1, estimator = "JLMS")
+hist(ineff_fit)
 ```
 
+Check for separation of frontier and actual production data
+```{r}
+pr <- predict(sfa1, type = "frontier")
+hist(pr, xlim = c(0, max(data1$y)))
+hist(data1$y, xlim = c(0, max(data1$y)))
+```
+
+```{r}
+eff_scaled <- (pr - ineff_fit)/pr
+hist(eff_scaled)
+```
+
+```{r}
+ineff_scaled <- 1-eff_scaled
+hist(ineff_scaled)
+```
+
+```{r}
+hist(efficiency(sfa1))
+```
 
 ## SFA model with endogenous inefficiency mean 
 
 ```{r}
+data2 <- as.data.frame(sim_data_cs(1000, 
+                                   x_coeff = c(50, 4, 2), 
+                                   z_coeff = c(20, -2, 2), 
+                                   sigma_u = 10, sigma_v = 5))
 
-est <- SFAt::sfa.fit(y = data1$y,
-                     X = cbind(a = data1$x1, b = data1$x2),
-                     Z = cbind(c = data1$z1, d = data1$z2),
+```
+
+```{r}
+
+est <- SFAt::sfa.fit(y = data2$y,
+                     X = cbind(a = data2$x1, b = data2$x2),
+                     CM = cbind(c = data2$z1, d = data2$z2),
                      dist = "tnorm",
                      spec  = "bc95",
                      deb = F,
-                     # opt_method = "Nelder-Mead",
                      opt_method = "L-BFGS-B",
-                     control_opt = list(maxit = 5000)
+                     control_opt = list(maxit = 6000)
 )
 
 est$coefficients
