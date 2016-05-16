@@ -6,10 +6,7 @@ This package is an alpha release and therefore is not yet ready for regular use.
 to-do:
 ------
 
-- reparametrize log-likelihood functions with $log(sigma_u)$ parameter subject to maximizations
-- rewrite tnorm model with sigma2_v, sigma2_u
-- add confidence intervals of inefficiency and coefficients
-- panel data modeles
+- panel data models
     - firm specific intercepts in conditional mean equations in (Battese-Coelli, 1995) model
     - firm specific intercepts in conditional variance equations in (Battese-Coelli, 1995) model
 - sfa() funtion with Formula interface 
