@@ -11,13 +11,13 @@
 #' @param ineff -1 (or 1) for production (or cost) function.
 #' @param intercept TRUE/FALSE if the intercept term should be added to the main formula.
 #' @param intercept_CM TRUE/FALSE if the intercept should be added to the conditional mean inefficiency formula.
-#' @param intercept_CV TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.
-#' @param structure "cs" for cross-section or "panel" for panel data model.
+#' @param intercept_CV TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula. (not functional yet)
+#' @param structure "cs" for cross-section or "panel" for panel data model. (not functional yet)
 #' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
 #' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
 #' @param sv_f starting value for frontier model parameters.
-#' @param sv_cm starting value for conditional mean model parameters.
-#' @param sv_cv starting value for conditional variance model parameters.
+#' @param sv_cm starting value for conditional mean model parameters. (not functional yet)
+#' @param sv_cv starting value for conditional variance model parameters. (not functional yet)
 #' @param opt_method optimization method.
 #' @param deb debug mode (TRUE/FALSE).
 #' @param control_opt list of options for optimization routine.
@@ -249,23 +249,48 @@ summary.SFA <- function(object) {
   coef_pvalues <- 2 * pt(q = abs(coef_tstats),
                          df = object$N - length(object$parameters),
                          lower.tail = FALSE)
+
+  coef_conf_low <- object$parameters - 1.96*coef_sd
+  coef_conf_high <- object$parameters + 1.96*coef_sd
+
   coef_table <- round(x = cbind(object$parameters,
                                 coef_sd,
                                 coef_tstats,
-                                coef_pvalues),
+                                coef_pvalues,
+                                coef_conf_low,
+                                coef_conf_high),
                       digits = 3)
-  colnames(coef_table) <- c("Estimate", "Std. Error","t-stat", "Pr(>|t|)")
+
+  colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high")
   row.names(coef_table) <- names(object$parameters)
 
-  print(coef_table[1:length(object$coeff),])
+  # print(coef_table[1:length(object$coeff),])
+  #
+  # cat(paste0(rep("_", 20)), "\n")
+  #
+  # print(coef_table[length(object$coeff) + 1 : length(object$cm_coeff),])
+  #
+  # cat(paste0(rep("_", 20)), "\n")
+  #
+  # print(coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))),])
 
-  cat(paste0(rep("_", 20)), "\n")
+  fcoef_table <- coef_table[1:length(object$coeff),]
+  mccoef_table <- coef_table[length(object$coeff) + 1 : length(object$cm_coeff),]
+  sigmas_table <- coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))),]
 
-  print(coef_table[length(object$coeff) + 1 : length(object$cm_coeff),])
+  separator1 <- t(gsub(".", "=", colnames(fcoef_table)))
+  separator2 <- t(gsub(".", "–", colnames(fcoef_table)))
 
-  cat(paste0(rep("_", 20)), "\n")
+  outtable <- rbind(separator1,
+                    fcoef_table,
+                    separator2,
+                    sigmas_table,
+                    separator2)
 
-  print(coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))),])
+  row.names(outtable)[1] <- paste0(rep("=", max(nchar(colnames(coef_table)))), collapse = "")
+  row.names(outtable)[c(length(object$coeff) + 2, nrow(outtable))] <- paste0(rep("-", max(nchar(colnames(coef_table)))), collapse = "")
+
+  print(outtable, quote = F)
 
   # LR test
   lrtest(object)
