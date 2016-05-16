@@ -1,5 +1,5 @@
 ---
-title: "SFAplus compared to other existing SFA packages"
+title: "SFAt compared to other existing R packages for SFA"
 author: "Vaclav Hausenblas"
 date: "2016-04-01"
 output: rmarkdown::html_vignette
@@ -9,14 +9,19 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r Init}
+require(SFAt)
+# require(msm) # package for drawing from truncated-normal distribution
+require(data.table) # for more convenient data manipulation
+```
+
 ### Example dataset
 
-Lets generate some randomly simulated production data,
+Lets generate some randomly simulated production data...
 
 ```{r}
-source("simulate_data.R")
 
-dtDT <- as.data.table(sim_data(500))
+dtDT <- as.data.table(sim_data_cs(500))
 
 ```
 
@@ -50,15 +55,15 @@ summary(lmfit)
 ## SFA model
 
 ```{r}
-est <- SFAplus::sfa.fit(y = dtDT$y,
-                        X = as.matrix(dtDT[, .(x1, x2)]),
-                        Z = as.matrix(dtDT[, .(z1, z2)]),
-                        spec = "bc95",
-                        deb = F,
-                        opt_method = "BFGS"
-                        # control_opt = list(maxit = 300, trace = T)
+sfat <- SFAt::sfa.fit(y = dtDT$y,
+                     X = as.matrix(dtDT[, .(x1, x2)]),
+                     CM = as.matrix(dtDT[, .(z1, z2)]),
+                     spec = "bc95",
+                     deb = F,
+                     opt_method = "BFGS"
+                     # control_opt = list(maxit = 300, trace = T)
 )
-print(est)
+summary(sfat)
 ```
 
 
@@ -87,8 +92,8 @@ frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
                           muBound = 0,
                           maxit = 100)
 
-summary(frontest)
-lrtest(frontest)
+print(summary(frontest))
+print(lrtest(frontest))
 
 ```
 
@@ -97,14 +102,14 @@ lrtest(frontest)
 ```{r}
 data("front41Data")
 
-sfa2 <- SFAplus::sfa.fit(y = log(front41Data$output), 
+sfa2 <- SFAt::sfa.fit(y = log(front41Data$output), 
                          X = cbind(capital = log(front41Data$capital), 
                                    labour = log(front41Data$labour)), 
                          dist = "tnorm",
                          spec = NULL,
                          deb = F)
 
-SFAplus:::summary.sfa(sfa2)
+print(summary(sfa2))
 ```
 
 
@@ -113,7 +118,7 @@ sfa2_front <- frontier::sfa( log( output ) ~ log( capital ) + log( labour ),
                              truncNorm = T,
                              data = front41Data )
 
-summary(sfa2_front)
-lrtest(sfa2_front)
+print(summary(sfa2_front))
+print(lrtest(sfa2_front))
 ```
 
