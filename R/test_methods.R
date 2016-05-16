@@ -25,3 +25,8 @@ lrtest.SFA <- function(object) {
   cat(paste0("Chisq Df: ", round(LR_chisq_df, 3)), "\n")
   cat(paste0("Pr(>Chisq): ", round(LR_pvalue, 3)))
 }
+
+#' @export
+lrtest <- function(object, ...){
+  UseMethod("lrtest")
+}

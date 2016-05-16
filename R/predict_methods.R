@@ -67,11 +67,6 @@ predictFrontier <- function(object, newdata) {
 # S3 methods -----------
 
 #' @export
-lrtest <- function(object, ...){
-  UseMethod("lrtest")
-}
-
-#' @export
 efficiency <- function(object, ...){
   UseMethod("efficiency")
 }
