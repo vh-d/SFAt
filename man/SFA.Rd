@@ -4,8 +4,8 @@
 \alias{SFA}
 \title{stochastic frontier analysis}
 \usage{
-SFA(formula, data = NULL, intercept = TRUE, intercept_Z = TRUE,
-  dist = "hnormal", start_val = NULL, par_mu = NULL, ineff = -1,
+SFA(formula, data = NULL, intercept = TRUE, intercept_CM = TRUE,
+  dist = "hnormal", sv_f = NULL, par_mu = NULL, ineff = -1,
   opt_method = "BFGS", ...)
 }
 \description{

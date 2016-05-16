@@ -4,20 +4,21 @@
 \alias{sfa.fit}
 \title{sfa.fit}
 \usage{
-sfa.fit(y, X, Z = NULL, intercept = TRUE, intercept_Z = TRUE,
-  structure = "cs", dist = "tnorm", spec = "bc95", start_val = NULL,
-  ineff = -1, opt_method = "BFGS", deb = F, control_opt = NULL)
+sfa.fit(y, X, CM = NULL, CV = NULL, ineff = -1, structure = "cs",
+  dist = "tnorm", spec = NULL, intercept = TRUE, intercept_CM = TRUE,
+  intercept_CV = TRUE, sv_f = NULL, sv_cm = NULL, sv_cv = NULL,
+  opt_method = "BFGS", deb = F, control_opt = NULL)
 }
 \arguments{
 \item{y}{dependent (production/cost) variable.}
 
 \item{X}{variables of the production/cost function.}
 
-\item{Z}{exogneous determinants of the mean inefficiency location.}
+\item{CM}{data for exogneous determinants of the conditional mean inefficiency.}
 
-\item{intercept}{TRUE/FALSE if the intercept should be included in the main formula.}
+\item{CV}{data for exogneous determinants of the conditional variance of inefficiency term.}
 
-\item{intercept_Z}{TRUE/FALSE if the intercept should be included in the inefficiency location formula.}
+\item{ineff}{-1 (or 1) for production (or cost) function.}
 
 \item{structure}{"cs" for cross-section or "panel" for panel data model.}
 
@@ -25,9 +26,17 @@ sfa.fit(y, X, Z = NULL, intercept = TRUE, intercept_Z = TRUE,
 
 \item{spec}{specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).}
 
-\item{start_val}{starting value of model parameters to be passed to optimization routine.}
+\item{intercept}{TRUE/FALSE if the intercept term should be added to the main formula.}
 
-\item{ineff}{-1 (or 1) for production (or cost) function.}
+\item{intercept_CM}{TRUE/FALSE if the intercept should be added to the conditional mean inefficiency formula.}
+
+\item{intercept_CV}{TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.}
+
+\item{sv_f}{starting value for frontier model parameters.}
+
+\item{sv_cm}{starting value for conditional mean model parameters.}
+
+\item{sv_cv}{starting value for conditional variance model parameters.}
 
 \item{opt_method}{optimization method.}
 
