@@ -1,12 +1,12 @@
 # NORMAL / T-NORMAL MODEL- CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm <- c(sigma_u = 1, sigma_v = 1)
+par_panel_tnorm <- c(sigma_u = 1, sigma_v = 1)
 
 # Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
 # heterogeneity in efficiency term: endogeneous location parameter mu
 # implemented as Hadri et al. 2003
 # parameters: beta_coef, delta_coef, sigma2_v, sigma2_u
-ll_cs_tnorm_bc95 <- function(params, y, X, Z, ineff, deb) {
+ll_panel_tnorm_bc95 <- function(params, y, X, Z, ineff, deb) {
 
   # extract parameters from parameter vector
   nbetas <- ncol(X) # number of beta coeffs
@@ -71,7 +71,7 @@ ll_cs_tnorm_bc95 <- function(params, y, X, Z, ineff, deb) {
   return(-result)
 }
 
-u_cs_tnorm_bc95 <- function(object, type) {
+u_panel_tnorm_bc95 <- function(object, type) {
   # extract sigmas from model object
   sigma2_u <- object$parameters[length(object$coefficients) + length(object$coefficients_Z) + 1]
   sigma2_v <- object$parameters[length(object$coefficients) + length(object$coefficients_Z) + 2]
