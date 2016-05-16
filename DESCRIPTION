@@ -11,6 +11,7 @@ RoxygenNote: 5.0.1
 Imports:
   lmtest
 Suggests:
+  knitr,
   data.table,
   msm,
   GGally,
@@ -18,3 +19,5 @@ Suggests:
   sfa,
   frontier,
   Benchmarking
+VignetteBuilder:
+  knitr
