@@ -21,16 +21,3 @@ lrtest.SFA <- function(object) {
   cat(paste0("Chisq Df: ", round(LR_chisq_df, 3)), "\n")
   cat(paste0("Pr(>Chisq): ", round(LR_pvalue, 3)))
 }
-
-predictFrontier <- function(object, newdata) {
-
-  if (is.null(newdata)) {
-    X <- object$data$X
-  } else {
-    X <- cbind(if (object$intercept) 1 else NULL,
-               newdata)
-  }
-
-  return(as.vector(X %*% object$coefficients))
-}
-

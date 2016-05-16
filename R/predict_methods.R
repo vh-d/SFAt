@@ -51,6 +51,19 @@ inefficiencyTerm.SFA <- function(object, estimator) {
 }
 
 
+predictFrontier <- function(object, newdata) {
+
+  if (is.null(newdata)) {
+    X <- object$data$X
+  } else {
+    X <- cbind(if (object$intercept) 1 else NULL,
+               newdata)
+  }
+
+  return(as.vector(X %*% object$coeff))
+}
+
+
 # S3 methods -----------
 
 #' @export
