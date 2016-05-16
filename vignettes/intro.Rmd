@@ -9,26 +9,24 @@ vignette: >
   %\VignetteEncoding{UTF-8}
   ---
   
-  This document shows and test basic routines of SFAplus package.
-  
-  ```{r Init}
-  require(SFAt)
-  # require(msm) # package for drawing from truncated-normal distribution
-  # require(data.table) # for more convenient data manipulation
-  ```
-  
-  
-  ## Basic SFA models
-  
-  ### Example dataset
-  
-  Lets generate some randomly simulated production data,
-  
-  ```{r}
+```{r Init}
+require(SFAt)
+# require(msm) # package for drawing from truncated-normal distribution
+# require(data.table) # for more convenient data manipulation
+```
+
+
+## Basic SFA models
+
+### Example dataset
+
+Lets generate some randomly simulated production data,
+
+```{r}
 data_ex1 <- as.data.frame(sim_data_cs(1000, 
-x_coeff = c(50, 4, 2), 
-z_coeff = c(20), 
-sigma_u = 20, sigma_v = 5))
+                                      x_coeff = c(50, 4, 2), 
+                                      z_coeff = c(20), 
+                                      sigma_u = 20, sigma_v = 5))
 
 ```
 
