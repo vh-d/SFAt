@@ -8,6 +8,7 @@
 #' @param X variables of the production/cost function.
 #' @param CM data for exogneous determinants of the conditional mean inefficiency.
 #' @param CV data for exogneous determinants of the conditional variance of inefficiency term.
+#' @param K matrix of panel data indeces.
 #' @param ineff -1 (or 1) for production (or cost) function.
 #' @param intercept TRUE/FALSE if the intercept term should be added to the main formula.
 #' @param intercept_CM TRUE/FALSE if the intercept should be added to the conditional mean inefficiency formula.
@@ -28,6 +29,7 @@ sfa.fit <- function(y,
                     X,
                     CM = NULL,
                     CV = NULL,
+                    K = NULL,
                     ineff = -1,
                     structure = "cs",
                     dist = "tnorm",
@@ -68,6 +70,15 @@ sfa.fit <- function(y,
   } else {
     cvarcoeff_num <- ncol(CV) # number of coefficients
     cvarcoeff_names <- colnames(CV) # coefficients names
+  }
+
+  # panel data dimensions
+  ispanel <- is.null(K)
+  if (ispanel) {
+    stopifnot(is.matrix(K) | is.data.frame(K), dim(K) == 2, dim(K)[2] == length(y), is.integer(K[, 2]))
+    K1 <- levels(as.factor(K[, 1]))
+    k = nlevels(K1)
+    K2 <- K[, 2]
   }
 
   if (deb) {
