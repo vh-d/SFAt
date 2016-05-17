@@ -16,12 +16,12 @@
 #' @param structure "cs" for cross-section or "panel" for panel data model. (not functional yet)
 #' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
 #' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
-#' @param sv_f starting value for frontier model parameters.
-#' @param sv_cm starting value for conditional mean model parameters. (not functional yet)
-#' @param sv_cv starting value for conditional variance model parameters. (not functional yet)
+#' @param sv_f starting values for frontier model parameters.
+#' @param sv_cm starting values for conditional mean model parameters. (not functional yet)
+#' @param sv_cv starting values for conditional variance model parameters. (not functional yet)
 #' @param opt_method optimization method.
+#' @param opt_control list of options for optimization routine.
 #' @param deb debug mode (TRUE/FALSE).
-#' @param control_opt list of options for optimization routine.
 #'
 #' @return list
 #' @export
@@ -41,8 +41,9 @@ sfa.fit <- function(y,
                     sv_cm = NULL,
                     sv_cv = NULL,
                     opt_method = "BFGS",
-                    deb = F, # TRUE for debug reports
-                    control_opt = NULL) {
+                    opt_control = NULL,
+                    deb = F # TRUE for debug reports
+                    ) {
 
   # ---- INIT ----
 
@@ -73,7 +74,7 @@ sfa.fit <- function(y,
   }
 
   # panel data dimensions
-  ispanel <- is.null(K)
+  ispanel <- !is.null(K)
   if (ispanel) {
     stopifnot(is.matrix(K) | is.data.frame(K), dim(K) == 2, dim(K)[2] == length(y), is.integer(K[, 2]))
     K1 <- levels(as.factor(K[, 1]))
@@ -199,9 +200,9 @@ sfa.fit <- function(y,
 
 # FORMULA FUNCTION --------------------------------------------------------
 
-#' stochastic frontier analysis
+# stochastic frontier analysis
 # this formula interface is not ready yet
-#' do not export
+# do not export
 SFA <- function(formula,
                 data = NULL,
                 intercept = TRUE,

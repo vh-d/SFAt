@@ -4,10 +4,10 @@
 \alias{sfa.fit}
 \title{sfa.fit}
 \usage{
-sfa.fit(y, X, CM = NULL, CV = NULL, ineff = -1, structure = "cs",
-  dist = "tnorm", spec = NULL, intercept = TRUE, intercept_CM = TRUE,
-  intercept_CV = TRUE, sv_f = NULL, sv_cm = NULL, sv_cv = NULL,
-  opt_method = "BFGS", deb = F, control_opt = NULL)
+sfa.fit(y, X, CM = NULL, CV = NULL, K = NULL, ineff = -1,
+  structure = "cs", dist = "tnorm", spec = NULL, intercept = TRUE,
+  intercept_CM = TRUE, intercept_CV = TRUE, sv_f = NULL, sv_cm = NULL,
+  sv_cv = NULL, opt_method = "BFGS", opt_control = NULL, deb = F)
 }
 \arguments{
 \item{y}{dependent (production/cost) variable.}
@@ -18,9 +18,11 @@ sfa.fit(y, X, CM = NULL, CV = NULL, ineff = -1, structure = "cs",
 
 \item{CV}{data for exogneous determinants of the conditional variance of inefficiency term.}
 
+\item{K}{matrix of panel data indeces.}
+
 \item{ineff}{-1 (or 1) for production (or cost) function.}
 
-\item{structure}{"cs" for cross-section or "panel" for panel data model.}
+\item{structure}{"cs" for cross-section or "panel" for panel data model. (not functional yet)}
 
 \item{dist}{distribution of inefficiency term ("hnorm", "exp", "tnorm").}
 
@@ -30,19 +32,19 @@ sfa.fit(y, X, CM = NULL, CV = NULL, ineff = -1, structure = "cs",
 
 \item{intercept_CM}{TRUE/FALSE if the intercept should be added to the conditional mean inefficiency formula.}
 
-\item{intercept_CV}{TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.}
+\item{intercept_CV}{TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula. (not functional yet)}
 
-\item{sv_f}{starting value for frontier model parameters.}
+\item{sv_f}{starting values for frontier model parameters.}
 
-\item{sv_cm}{starting value for conditional mean model parameters.}
+\item{sv_cm}{starting values for conditional mean model parameters. (not functional yet)}
 
-\item{sv_cv}{starting value for conditional variance model parameters.}
+\item{sv_cv}{starting values for conditional variance model parameters. (not functional yet)}
 
 \item{opt_method}{optimization method.}
 
-\item{deb}{debug mode (TRUE/FALSE).}
+\item{opt_control}{list of options for optimization routine.}
 
-\item{control_opt}{list of options for optimization routine.}
+\item{deb}{debug mode (TRUE/FALSE).}
 }
 \value{
 list
