@@ -201,7 +201,7 @@ sfa.fit <- function(y,
 
 #' stochastic frontier analysis
 # this formula interface is not ready yet
-#' @export
+#' do not export
 SFA <- function(formula,
                 data = NULL,
                 intercept = TRUE,
