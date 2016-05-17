@@ -4,7 +4,7 @@ Title: Stochastic frontier analysis package using traditional statistical method
 Version: 0.1.2
 Author: Vaclav Hausenblas
 Maintainer: Vaclav Hausenblas <vaclav.hausenblas@gmail.com>
-Description: Comprehensive collection of routines for estimating SFA (Stochastic frontier analysis) models on both cross-section and panel data with heterogeneity.
+Description: Collection of routines for estimating SFA (Stochastic frontier analysis) models on both cross-section and panel data.
 License: GPL-2
 LazyData: TRUE
 RoxygenNote: 5.0.1
