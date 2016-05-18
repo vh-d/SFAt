@@ -53,7 +53,7 @@ model_ex1 <- sfa.fit(y = data_ex1$y,
                      dist = "tnorm",
                      spec  = NULL,
                      deb = F,
-                     opt_method = "L-BF"
+                     # opt_method = "SANN"
                      # control_opt = list(maxit = 300)
 )
 
@@ -108,7 +108,7 @@ model_ex2 <- sfa.fit(y = data_ex2_cm$y,
                      spec  = "bc95",
                      deb = F,
                      opt_method = "SANN",
-                     control_opt = list(maxit = 6000))
+                     opt_control = list(maxit = 6000))
 
 print(model_ex2$coefficients)
 print(model_ex2$coefficients_Z)
