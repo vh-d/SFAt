@@ -81,7 +81,7 @@ sim_data_panel <- function(k = 20, # number of individuals - cross section
                            x_mean = 10,
                            x_sd = 1,
                            z_mean = 10,
-                           z_sd = 2,
+                           z_sd = 1,
                            x_coeff = c(10, 6, 3),
                            z_intercept = 5,
                            z_coeff = c(1.9, -0.9),
@@ -109,8 +109,9 @@ sim_data_panel <- function(k = 20, # number of individuals - cross section
   # random exogeneous data
 
   # intercept for each individual (cross section)
-  mu_unique <- rnorm(k, z_intercept, 2)
+  mu_unique <- rnorm(k, z_intercept, 3)
   mu <- rep(mu_unique, each = t)
+  K <- cbind(k = rep(1:k, each = t), t = rep(1:t, times = k))
 
   if (z_ncols > 0 ) {
     Z <- matrix(rnorm(n = N*z_ncols,
@@ -145,7 +146,7 @@ sim_data_panel <- function(k = 20, # number of individuals - cross section
   y <- as.vector( cbind(1, X) %*% x_coeff) + eps
 
   if (aslist) {
-    return(list(y = y, X = X, Z = Z,
+    return(list(y = y, X = X, Z = Z, K = K,
                 u = u, v = v, eps = eps,
                 N = N, t = t, k = k, mu = mu_unique))
   } else
