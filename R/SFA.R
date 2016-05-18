@@ -262,8 +262,8 @@ summary.SFA <- function(object) {
                          df = object$N - length(object$parameters),
                          lower.tail = FALSE)
 
-  coef_conf_low <- object$parameters - 1.96*coef_sd
-  coef_conf_high <- object$parameters + 1.96*coef_sd
+  coef_conf_low <- object$parameters - qnorm(0.975)*coef_sd
+  coef_conf_high <- object$parameters + qnorm(0.975)*coef_sd
 
   coef_table <- round(x = cbind(object$parameters,
                                 coef_sd,
@@ -276,16 +276,6 @@ summary.SFA <- function(object) {
   colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high)")
   row.names(coef_table) <- names(object$parameters)
 
-  # print(coef_table[1:length(object$coeff),])
-  #
-  # cat(paste0(rep("_", 20)), "\n")
-  #
-  # print(coef_table[length(object$coeff) + 1 : length(object$cm_coeff),])
-  #
-  # cat(paste0(rep("_", 20)), "\n")
-  #
-  # print(coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))),])
-
   fcoef_table <- coef_table[1:length(object$coeff),]
   mccoef_table <- coef_table[length(object$coeff) + 1 : length(object$cm_coeff),]
   sigmas_table <- coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))),]
@@ -296,13 +286,27 @@ summary.SFA <- function(object) {
   outtable <- rbind(separator1,
                     fcoef_table,
                     separator2,
+                    mccoef_table,
+                    separator2,
                     sigmas_table,
                     separator2)
 
   row.names(outtable)[1] <- paste0(rep("=", max(nchar(colnames(coef_table)))), collapse = "")
-  row.names(outtable)[c(length(object$coeff) + 2, nrow(outtable))] <- paste0(rep("-", max(nchar(colnames(coef_table)))), collapse = "")
+  row.names(outtable)[c(nrow(fcoef_table) + 2, nrow(fcoef_table) + 2 + nrow(mccoef_table) + 1, nrow(outtable))] <- paste0(rep("-", max(nchar(colnames(coef_table)))), collapse = "")
+
+  cat("Stochastic frontier model",
+      "=========================",
+      sep = "\n")
+
+  cat(if (object$call$structure == "panel") "Panel" else "Cross-section", "data.\n")
+  cat("Total observations:", object$N, if (object$call$structure == "panel") "in cross-section." else NULL,
+      "\n")
+
+  cat("\n", sep = "")
 
   print(outtable, quote = F)
+
+  cat("\n", sep = "")
 
   # LR test
   lrtest(object)
