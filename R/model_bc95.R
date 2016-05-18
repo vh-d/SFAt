@@ -51,12 +51,12 @@ ll_cs_tnorm_bc95 <- function(params, y, X, CM, ineff, deb) {
 
   Zdelta <- as.vector(CM %*% delta_coef) # fitted means of inefficiency term
 
-  eps <- as.vector(y - (X %*% beta_coef)) # composite error terms
+  eps <- -ineff*as.vector(y - (X %*% beta_coef)) # composite error terms
 
   mu_ast <- (sigma2_v*Zdelta - sigma2_u*eps) / sigma2
 
   temp_expr1 <- -0.5 * N * (log(2*pi) + log(sigma2))
-  temp_expr2 <- -0.5 * sum((-ineff*eps + Zdelta)^2)/sigma2
+  temp_expr2 <- -0.5 * sum((eps + Zdelta)^2)/sigma2
   temp_expr3 <- sum(log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u)))
 
   if (deb) cat("Log-likelihood: ",
