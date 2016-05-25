@@ -23,7 +23,7 @@
 #' @param opt_control list of options for optimization routine.
 #' @param deb debug mode (TRUE/FALSE).
 #'
-#' @return list
+#' @return list object of class SFA.
 #' @export
 sfa.fit <- function(y,
                     X,
@@ -253,6 +253,8 @@ SFA <- function(formula,
 
 # SUMMARY FUNCTION --------------------------------------------------------
 #' test statistics for SFAplus model
+#' @param object object of class SFA
+#' @details Prints table of summary statistics for SFA model fitted by \code{SFA.fit} funtion.
 #' @export
 summary.SFA <- function(object) {
 

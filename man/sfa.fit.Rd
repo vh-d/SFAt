@@ -47,7 +47,7 @@ sfa.fit(y, X, CM = NULL, CV = NULL, K = NULL, ineff = -1,
 \item{deb}{debug mode (TRUE/FALSE).}
 }
 \value{
-list
+list object of class SFA.
 }
 \description{
 Fits stochastic frontier analysis (SFA) model

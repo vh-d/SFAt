@@ -6,7 +6,13 @@
 \usage{
 \method{summary}{SFA}(object)
 }
+\arguments{
+\item{object}{object of class SFA}
+}
 \description{
 test statistics for SFAplus model
+}
+\details{
+Prints table of summary statistics for SFA model fitted by \code{SFA.fit} funtion.
 }
 

@@ -5,7 +5,7 @@
 \title{generate simulated panel data for testing purposes}
 \usage{
 sim_data_panel(k = 20, t = 10, x_mean = 10, x_sd = 1, z_mean = 10,
-  z_sd = 2, x_coeff = c(10, 6, 3), z_intercept = 5, z_coeff = c(1.9,
+  z_sd = 1, x_coeff = c(10, 6, 3), z_intercept = 5, z_coeff = c(1.9,
   -0.9), sigma_u = 2, sigma_v = 3, ineff = -1, aslist = F)
 }
 \arguments{
