@@ -11,6 +11,7 @@ Installation
 ------------
 
 The package is not on CRAN yet. Install it from its GitHub repo.
+
 ```{r}
 library(devtools)
 install_github("vh-d/SFAt")
@@ -23,8 +24,9 @@ To-do:
     - firm specific intercepts in conditional mean equations in (Battese-Coelli, 1995) model
     - firm specific intercepts in conditional variance equations in (Battese-Coelli, 1995) model
 - SFA() funtion with Formula interface 
+- add tests
 - rewrite likelihood functions in C++ (using Rcpp)
 - explore `likelihood`, `ucmin` and `mle` packages for MLE optimizations  
 
 
-Contributions or suggestions are welcome!
+Contributions and suggestions are welcome!
