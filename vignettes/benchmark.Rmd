@@ -19,7 +19,7 @@ require(data.table) # for more convenient data manipulation
 
 Lets generate some randomly simulated production data...
 
-```{r}
+```{r Simulate data}
 
 dtDT <- as.data.table(sim_data_cs(500))
 
@@ -27,14 +27,14 @@ dtDT <- as.data.table(sim_data_cs(500))
 
 and explore the production data and simulated inefficiency term.
 
-```{r, fig.width = 10, fig.height = 10}
+```{r Scatter plot matrix, fig.width = 10, fig.height = 10}
 # require(GGally)
 # ggpairs(dtDT)
 
 plot(dtDT)
 ```
 
-```{r}
+```{r Plot individual variables}
 hist(dtDT$y)
 hist(dtDT$u)
 hist(dtDT$eps)
@@ -45,7 +45,7 @@ hist(dtDT$eps)
 
 We might be interested in simple OLS model for LR test (and starting values of parameters).
 
-```{r}
+```{r OSL model}
 
 lmfit <- lm(y ~ x1 + x2 + z1 + z2, data = dtDT)
 summary(lmfit)
@@ -54,7 +54,7 @@ summary(lmfit)
 
 ## SFA model
 
-```{r}
+```{r SFAt model}
 sfat <- SFAt::sfa.fit(y = dtDT$y,
                      X = as.matrix(dtDT[, .(x1, x2)]),
                      CM = as.matrix(dtDT[, .(z1, z2)]),
@@ -82,7 +82,7 @@ summary(sfat)
 
 ### benchmark with frontier package methods
 
-```{r}
+```{r frontier package}
 require(frontier)
 
 frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
@@ -99,7 +99,7 @@ print(lrtest(frontest))
 
 ## Example 2
 
-```{r}
+```{r SFAt BC95}
 data("front41Data")
 
 sfa2 <- SFAt::sfa.fit(y = log(front41Data$output), 
@@ -113,7 +113,7 @@ print(summary(sfa2))
 ```
 
 
-```{r}
+```{r frontier package BC95}
 sfa2_front <- frontier::sfa( log( output ) ~ log( capital ) + log( labour ),
                              truncNorm = T,
                              data = front41Data )
