@@ -283,7 +283,7 @@ summary.SFA <- function(object) {
   sigmas_table <- coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))),]
 
   separator1 <- t(gsub(".", "=", colnames(fcoef_table)))
-  separator2 <- t(gsub(".", "–", colnames(fcoef_table)))
+  separator2 <- t(gsub(".", "-", colnames(fcoef_table)))
 
   outtable <- rbind(separator1,
                     fcoef_table,
