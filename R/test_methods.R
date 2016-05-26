@@ -16,18 +16,32 @@ lrtest.SFA <- function(object) {
       0.5*pchisq(LR_test_stat, LR_chisq_df, lower.tail = FALSE)
   }
 
-  cat("Likelihood ratio test:",
-      "======================",
-      "Null-model: OLS",
-      sep = "\n")
+  ans <- list(LR_test_stat = LR_test_stat,
+              LR_chisq_df = LR_chisq_df,
+              LR_pvalue = LR_pvalue)
 
-  cat(paste0("LR Chisq: ", round(LR_test_stat, 3)),
-      paste0("Chisq Df: ", round(LR_chisq_df, 3)),
-      paste0("Pr(>Chisq): ", round(LR_pvalue, 3)),
-      sep = "\n")
+  class(ans) <- "lrtest.SFA"
+
+  return(ans)
 }
 
 #' @export
 lrtest <- function(object, ...){
   UseMethod("lrtest")
+}
+
+
+#' Print LR test results for SFA class
+#' @export
+print.lrtest.SFA <- function(object) {
+  cat("Likelihood ratio test:",
+      "======================",
+      "Null-model: OLS",
+      sep = "\n")
+
+  cat(paste0("LR Chisq: ", round(object$LR_test_stat, 3)),
+      paste0("Chisq Df: ", round(object$LR_chisq_df, 3)),
+      paste0("Pr(>Chisq): ", round(object$LR_pvalue, 3)),
+      sep = "\n")
+
 }

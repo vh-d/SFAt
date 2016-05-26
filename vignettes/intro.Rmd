@@ -52,10 +52,12 @@ model_ex1 <- sfa.fit(y = data_ex1$y,
                      CM = NULL,    
                      dist = "tnorm",
                      spec  = NULL,
-                     deb = F
+                     deb = F,
+                     opt_control = list(maxit = 100000)
 )
 
 print(summary(model_ex1))
+print(lrtest(model_ex1))
 ```
 
 
