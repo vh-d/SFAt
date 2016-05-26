@@ -252,9 +252,8 @@ SFA <- function(formula,
 
 
 # SUMMARY FUNCTION --------------------------------------------------------
-#' test statistics for SFAplus model
+#' test statistics for SFA model
 #' @param object object of class SFA
-#' @details Prints table of summary statistics for SFA model fitted by \code{SFA.fit} funtion.
 #' @export
 summary.SFA <- function(object) {
 
@@ -274,6 +273,27 @@ summary.SFA <- function(object) {
                                 coef_conf_low,
                                 coef_conf_high),
                       digits = 3)
+
+  ans <- list(call = object$call,
+              N = object$N,
+              loglik = object$loglik,
+              coeff = object$coeff,
+              cm_coeff = object$cm_coeff,
+              parameters = object$parameters,
+              coefficients = coef_table)
+
+  class(ans) <- "summary.SFA"
+
+  return(ans)
+}
+
+#' Print summary for SFA objects.
+#' @param object object of class SFA
+#' @details Prints table of summary statistics for SFA model fitted by \code{SFA.fit} funtion.
+#' @export
+print.summary.SFA <- function(object) {
+
+  coef_table <- object$coefficients
 
   colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high)")
   row.names(coef_table) <- names(object$parameters)
@@ -304,13 +324,10 @@ summary.SFA <- function(object) {
   cat("Total observations:", object$N, if (object$call$structure == "panel") "in cross-section." else NULL,
       "\n")
 
-  cat("\n", sep = "")
+  cat("Log-likelihood:", object$loglik, "\n")
 
+  cat("\n", sep = "")
   print(outtable, quote = F)
 
   cat("\n", sep = "")
-
-  # LR test
-  lrtest(object)
 }
-
