@@ -40,7 +40,7 @@ sfa.fit <- function(y,
                     sv_f = NULL,
                     sv_cm = NULL,
                     sv_cv = NULL,
-                    opt_method = "BFGS",
+                    opt_method = "SANN",
                     opt_control = NULL,
                     deb = F # TRUE for debug reports
                     ) {

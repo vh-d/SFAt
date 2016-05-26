@@ -7,7 +7,7 @@
 sfa.fit(y, X, CM = NULL, CV = NULL, K = NULL, ineff = -1,
   structure = "cs", dist = "tnorm", spec = NULL, intercept = TRUE,
   intercept_CM = TRUE, intercept_CV = TRUE, sv_f = NULL, sv_cm = NULL,
-  sv_cv = NULL, opt_method = "BFGS", opt_control = NULL, deb = F)
+  sv_cv = NULL, opt_method = "SANN", opt_control = NULL, deb = F)
 }
 \arguments{
 \item{y}{dependent (production/cost) variable.}

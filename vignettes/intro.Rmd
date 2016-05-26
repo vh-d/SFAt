@@ -53,8 +53,6 @@ model_ex1 <- sfa.fit(y = data_ex1$y,
                      dist = "tnorm",
                      spec  = NULL,
                      deb = F,
-                     # opt_method = "SANN"
-                     # control_opt = list(maxit = 300)
 )
 
 print(summary(model_ex1))
