@@ -26,7 +26,7 @@ To-do:
 - SFA() funtion with Formula interface 
 - add tests
 - rewrite likelihood functions in C++ (using Rcpp)
-- explore `likelihood`, `ucmin` and `mle` packages for MLE optimizations  
+- explore `nloptr`, `ucminf` and `maxLik` packages for MLE optimizations  
 
 
 Contributions and suggestions are welcome!
