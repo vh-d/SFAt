@@ -9,6 +9,7 @@ License: GPL-2
 LazyData: TRUE
 RoxygenNote: 5.0.1
 Imports:
+  Rcpp (>= 0.12.5),
   lmtest
 Suggests:
   knitr,
@@ -21,3 +22,5 @@ Suggests:
   Benchmarking
 VignetteBuilder:
   knitr
+LinkingTo:
+  Rcpp
