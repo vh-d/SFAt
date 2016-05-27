@@ -7,7 +7,8 @@
 sfa.fit(y, X, CM = NULL, CV = NULL, K = NULL, ineff = -1,
   structure = "cs", dist = "tnorm", spec = NULL, intercept = TRUE,
   intercept_CM = TRUE, intercept_CV = TRUE, sv_f = NULL, sv_cm = NULL,
-  sv_cv = NULL, opt_method = "SANN", opt_control = NULL, deb = F)
+  sv_cv = NULL, ll = NULL, opt_method = "SANN", opt_control = NULL,
+  deb = F, debll = F)
 }
 \arguments{
 \item{y}{dependent (production/cost) variable.}
@@ -40,6 +41,8 @@ sfa.fit(y, X, CM = NULL, CV = NULL, K = NULL, ineff = -1,
 
 \item{sv_cv}{starting values for conditional variance model parameters. (not functional yet)}
 
+\item{ll}{allows custom log-likelihood function that will be MINIMIZED.}
+
 \item{opt_method}{optimization method.}
 
 \item{opt_control}{list of options for optimization routine.}
@@ -51,5 +54,12 @@ list object of class SFA.
 }
 \description{
 Fits stochastic frontier analysis (SFA) model
+}
+\details{
+Experiment with different optimization algorithms:
+
+SANN - slow but better results, maxit = 1e4, tmax = 15, temp = 1
+
+L-BFGS-B - very fast, but can crash on infinite values
 }
 

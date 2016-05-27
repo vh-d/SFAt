@@ -19,10 +19,13 @@
 #' @param sv_f starting values for frontier model parameters.
 #' @param sv_cm starting values for conditional mean model parameters. (not functional yet)
 #' @param sv_cv starting values for conditional variance model parameters. (not functional yet)
+#' @param ll allows custom log-likelihood function that will be MINIMIZED.
 #' @param opt_method optimization method.
 #' @param opt_control list of options for optimization routine.
 #' @param deb debug mode (TRUE/FALSE).
-#'
+#' @details Experiment with different optimization algorithms:
+#' @details SANN - slow but better results, maxit = 1e4, tmax = 15, temp = 1
+#' @details L-BFGS-B - very fast, but can crash on infinite values
 #' @return list object of class SFA.
 #' @export
 sfa.fit <- function(y,
@@ -40,9 +43,11 @@ sfa.fit <- function(y,
                     sv_f = NULL,
                     sv_cm = NULL,
                     sv_cv = NULL,
+                    ll = NULL,
                     opt_method = "SANN",
                     opt_control = NULL,
-                    deb = F # TRUE for debug reports
+                    deb = F, # TRUE for debug reports
+                    debll = F
                     ) {
 
   # ---- INIT ----
@@ -100,16 +105,16 @@ sfa.fit <- function(y,
       sv_f <- switch (dist,
                       tnorm = c(lmfit$coefficients,
                                 mu = 0,
-                                lnsigma2_u = 0,
-                                lnsigma2_v = 0),
+                                lnsigma2_u = 0.5,
+                                lnsigma2_v = 0.5),
 
                       hnorm = c(lmfit$coefficients,
-                                lnsigma2_u = 0,
-                                lnsigma2_v = 0),
+                                lnsigma2_u = 0.5,
+                                lnsigma2_v = 0.5),
 
                       exp = c(lmfit$coefficients,
-                              lnsigma2_u = 0,
-                              lnsigma2_v = 0))
+                              lnsigma2_u = 0.5,
+                              lnsigma2_v = 0.5))
 
       names(sv_f)[1:length(fcoeff_names)] <- fcoeff_names
     } else {
@@ -138,10 +143,14 @@ sfa.fit <- function(y,
 
   if (deb) print(sv_f)
 
-  ll_fn_call <- paste0("ll", "_",
-                       structure, "_",
-                       dist,
-                       if (is.null(spec)) NULL else paste0("_", spec))
+  if (is.null(ll)) {
+    ll_fn_call <- paste0("ll", "_",
+                         structure, "_",
+                         dist,
+                         if (is.null(spec)) NULL else paste0("_", spec))
+  } else { # to-do: check existence of ll function given by user
+    ll_fn_call <- ll
+  }
 
   if (deb) {
     print(head(X))
@@ -160,7 +169,7 @@ sfa.fit <- function(y,
                  y = y,
                  X = X,
                  ineff = ineff,
-                 deb = deb)
+                 deb = debll)
   } else {
     est <- optim(sv_f,
                  fn = eval(parse(text = ll_fn_call)),
@@ -171,7 +180,7 @@ sfa.fit <- function(y,
                  X = X,
                  CM = CM,
                  ineff = ineff,
-                 deb = deb)
+                 debll = deb)
   }
 
   result <- list(coeff = est$par[1:fcoeff_num],
