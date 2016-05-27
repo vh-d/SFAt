@@ -1,67 +1,80 @@
 #include <Rcpp.h>
 #include <Rmath.h>
-#include <iostream>
+
 using namespace Rcpp;
 
-#ifndef Pi
-#define Pi 3.141592653589793238462643
-#endif
+// #ifndef Pi
+// #define Pi 3.141592653589793238462643
+// #endif
+//
+// double normalCFD(double value)
+// {
+//   return 0.5 * erfc(-value * M_SQRT1_2);
+// }
 
-double normalCFD(double value)
-{
-  return 0.5 * erfc(-value * M_SQRT1_2);
-}
 
-// Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double ll_cs_exp(SEXP& params, SEXP& y, SEXP& X, int ineff, bool deb) {
+double ll_cs_exp_cpp(const SEXP params, const SEXP y, const SEXP X, const int ineff, const bool deb) {
 
-  NumericVector pars(params);
-  NumericVector yy(y);
-  NumericMatrix XX(X);
+  const NumericVector pars(params);
+  const NumericVector yy(y);
+  const NumericMatrix XX(X);
 
   int nbetas = XX.ncol();
 
-  double lnsigma2_u = pars[nbetas];
-  double lnsigma2_v = pars[nbetas + 1];
+  const double lnsigma2_u = pars[nbetas];
+  const double lnsigma2_v = pars[nbetas + 1];
 
-  double sigma2_u = std::exp(lnsigma2_u);
-  double sigma2_v = std::exp(lnsigma2_v);
+  const double sigma2_u = exp(lnsigma2_u);
+  const double sigma2_v = exp(lnsigma2_v);
 
-  double sigma_u = std::sqrt(sigma2_u);
-  double sigma_v = std::sqrt(sigma2_v);
+  const double sigma_u = sqrt(sigma2_u);
+  const double sigma_v = sqrt(sigma2_v);
 
-  const int N = yy.size();
+  const int N_obs = yy.size();
 
-  // for (int k = 0; k < nbetas; k++) {
-  //   Rcout << "Coeff. " << k << " :" << pars[k] << std::endl;
-  // }
+  if (deb){
+    for (int k = 0; k < nbetas; k++) {
+      Rcout << "Coeff. " << k << " :" << pars[k] << std::endl;
+    }
 
-  // Rcout << "Sigma_u: " << sigma_u << std::endl;
-  // Rcout << "Sigma_v: " << sigma_v << std::endl;
+    Rcout << "Sigma_u: " << sigma_u << std::endl;
+    Rcout << "Sigma_v: " << sigma_v << std::endl;
 
-  double ll = -N * std::log(sigma_u) + 0.5 * N * (sigma2_v / sigma2_u);
+    Rcout << "N: " << N_obs << std::endl;
+  }
+
+  double ll = -1 * N_obs * log(sigma_u) + 0.5 * N_obs * (sigma2_v / sigma2_u);
 
   // Rcout << "Log-lik: " << ll << std::endl;
 
-  NumericVector epsilon(N);
+  NumericVector epsilon(N_obs);
 
   int i,j = 0;
+  for (i = 0;i < N_obs; i++) {
 
-  double tmp = 0.0;
-  for (i = 0;i < N; ++i) {
+    double tmp = 0.0;
+    double expr = 0.0;
 
-    tmp = 0.0;
-
-    for (j = 0;j < nbetas; ++j){
+    for (j = 0;j < nbetas; j++){
       tmp += XX(i, j)*pars[j];
     }
 
     epsilon[i] = -ineff*(yy[i] - tmp);
 
-    // Rcout << epsilon[i] << std::endl;
+    expr = R::pnorm(-(epsilon[i] + (sigma2_v / sigma_u)) / sigma_v, 0.0, 1.0, 1, 0);
 
-    ll += std::log(normalCFD(-(epsilon[i] + (sigma2_v / sigma_u)) / sigma_v)) + (epsilon[i] / sigma_u);
+    if (expr == 0.0) {
+      if (deb) Rcout << "Inf" << std::endl;
+      return(R_PosInf);
+    } else {
+      ll += log(expr) + (epsilon[i] / sigma_u);
+    }
+
+  }
+
+  if (deb) {
+    Rcout << std::setprecision(20) << -ll << std::endl;
   }
 
   return -ll;
