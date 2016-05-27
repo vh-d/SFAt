@@ -4,4 +4,6 @@
 #' It was inspired by some existing software for SFA (R packages frontier, sfa and Benchmarking, STATA commands frontier, xtfrontier and sfcross/sfpanel) but it aims to be
 #' more comprehansive, modular/extendable and open (open source).
 #'
+#' @useDynLib SFAt
+#' @importFrom Rcpp evalCpp
 "_PACKAGE"

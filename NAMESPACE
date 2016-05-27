@@ -13,6 +13,5 @@ export(lrtest)
 export(sfa.fit)
 export(sim_data_cs)
 export(sim_data_panel)
-
-importFrom(Rcpp, evalCpp)
+importFrom(Rcpp,evalCpp)
 useDynLib(SFAt)
