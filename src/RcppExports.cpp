@@ -5,13 +5,18 @@
 
 using namespace Rcpp;
 
-// rcpp_hello
-List rcpp_hello();
-RcppExport SEXP SFAt_rcpp_hello() {
+// ll_cs_exp
+double ll_cs_exp(SEXP& params, SEXP& y, SEXP& X, int ineff, bool deb);
+RcppExport SEXP SFAt_ll_cs_exp(SEXP paramsSEXP, SEXP ySEXP, SEXP XSEXP, SEXP ineffSEXP, SEXP debSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    __result = Rcpp::wrap(rcpp_hello());
+    Rcpp::traits::input_parameter< SEXP& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< SEXP& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< SEXP& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< int >::type ineff(ineffSEXP);
+    Rcpp::traits::input_parameter< bool >::type deb(debSEXP);
+    __result = Rcpp::wrap(ll_cs_exp(params, y, X, ineff, deb));
     return __result;
 END_RCPP
 }
