@@ -46,14 +46,10 @@ hist(data_ex1$eps)
 ## SFA -- normal/t-normal model
 
 ```{r}
-
 model_ex1 <- sfa.fit(y = data_ex1$y,
                      X = cbind(a = data_ex1$x1, b = data_ex1$x2),
                      CM = NULL,    
-                     dist = "tnorm",
-                     spec  = NULL,
-                     deb = F,
-                     opt_control = list(maxit = 100000)
+                     dist = "tnorm"
 )
 
 print(summary(model_ex1))
