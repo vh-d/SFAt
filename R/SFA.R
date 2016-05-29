@@ -9,7 +9,7 @@
 #' @param CM data for exogneous determinants of the conditional mean inefficiency.
 #' @param CV data for exogneous determinants of the conditional variance of inefficiency term.
 #' @param K matrix of panel data indeces.
-#' @param ineff -1 (or 1) for production (or cost) function.
+#' @param ineff -1 (or 1) for production (or cost) function, where inefficiency decreases (or increases) the total output (or costs).
 #' @param intercept TRUE/FALSE if the intercept term should be added to the main formula.
 #' @param intercept_CM TRUE/FALSE if the intercept should be added to the conditional mean inefficiency formula.
 #' @param intercept_CV TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula. (not functional yet)
@@ -23,10 +23,39 @@
 #' @param opt_method optimization method.
 #' @param opt_control list of options for optimization routine.
 #' @param deb debug mode (TRUE/FALSE).
-#' @details Experiment with different optimization algorithms:
-#' @details SANN - slow but better results, maxit = 1e4, tmax = 15, temp = 1
-#' @details L-BFGS-B - very fast, but can crash on infinite values
-#' @return list object of class SFA.
+#' @details
+#' Notice that the choice of optimization method may have significant impact on the results. It is recommanded to experiment with different optimization algorithms. Recommended are:
+#' \itemize{
+#' \item SANN -- In general, this is the most robust method. It can be slow with larger datasets or more complex models but the results tend to be better if parameters \code{maxit, tmax, temp} are set correctly (maxit > 1e4+, tmax = 15, temp = 1).
+#' \item L-BFGS-B -- Fastest, but can crashes on complex models (infinite log-likelihood values etc...). If starting values are set well, it leads to the same results as SANN but much faster.
+#' \item BFGS -- Fast, but can crashes on complex models (infinite log-likelihood values etc...).
+#' }
+#' See help for \code{optim()} function.
+#'
+#' @return Returns object of the class SFA which is a list object consisting:
+#' \itemize{
+#' \item coeff -- coefficients for stochastic frontier model
+#' \item cm_coeff -- coefficients for conditional mean inefficiency model
+#' \item residuals -- total residuals (= both u + v terms)
+#' \item parameters -- vector of all parameters returend from miximization of log-likelihood
+#' \item N -- total number of observations
+#' \item ineff -- -1 (1 resp.) for production (cost resp.) function
+#' \item ineff_name -- either "production" or "cost" string
+#' \item data -- list of all data used for estimation (including unit vectors as intercepts if appropriate)
+#' \item call is list of \itemize{
+#'    \item intercept
+#'    \item intercept_CM
+#'    \item dist
+#'    \item spec
+#'    \item structure
+#' }
+#' \item loglik -- log-likehood
+#' \item hessian -- hessian matrix
+#' \item lmfit -- fitted linear model
+#' }
+#' @examples
+#' See vignettes.
+#'
 #' @export
 sfa.fit <- function(y,
                     X,
@@ -48,7 +77,7 @@ sfa.fit <- function(y,
                     opt_control = NULL,
                     deb = F, # TRUE for debug reports
                     debll = F
-                    ) {
+) {
 
   # ---- INIT ----
 
