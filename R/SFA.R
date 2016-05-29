@@ -275,21 +275,31 @@ summary.SFA <- function(object) {
   coef_conf_low <- object$parameters - qnorm(0.975)*coef_sd
   coef_conf_high <- object$parameters + qnorm(0.975)*coef_sd
 
-  coef_table <- round(x = cbind(object$parameters,
-                                coef_sd,
-                                coef_tstats,
-                                coef_pvalues,
-                                coef_conf_low,
-                                coef_conf_high),
-                      digits = 3)
+  coef_table <- cbind(object$parameters,
+                      coef_sd,
+                      coef_tstats,
+                      coef_pvalues,
+                      coef_conf_low,
+                      coef_conf_high)
+
+  colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high)")
+  row.names(coef_table) <- names(object$parameters)
+
+  fcoef_table <- coef_table[1:length(object$coeff), , drop = F]
+  mccoef_table <- coef_table[length(object$coeff) + 1 : length(object$cm_coeff), , drop = F]
+  sigmas_table <- coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))), , drop = F]
+  sigmas_t_table <- sigmas_table
+  sigmas_t_table[] <- NA
+  sigmas_t_table[, 1] <- sqrt(exp(sigmas_table[, 1]))
 
   ans <- list(call = object$call,
               N = object$N,
               loglik = object$loglik,
-              coeff = object$coeff,
-              cm_coeff = object$cm_coeff,
               parameters = object$parameters,
-              coefficients = coef_table)
+              coefficients_frontier = fcoef_table,
+              coefficients_mc = mccoef_table,
+              sigmas = sigmas_table,
+              sigmas_t = sigmas_t_table)
 
   class(ans) <- "summary.SFA"
 
@@ -302,28 +312,23 @@ summary.SFA <- function(object) {
 #' @export
 print.summary.SFA <- function(object) {
 
-  coef_table <- object$coefficients
+  col_names <- colnames(object$coefficients_frontier)
 
-  colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high)")
-  row.names(coef_table) <- names(object$parameters)
+  separator_head <- t(gsub(".", "=", col_names))
+  separator_mid <- t(gsub(".", "-", col_names))
 
-  fcoef_table <- coef_table[1:length(object$coeff),]
-  mccoef_table <- coef_table[length(object$coeff) + 1 : length(object$cm_coeff),]
-  sigmas_table <- coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))),]
+  names(separator_head) = paste0(rep("=", max(nchar(col_names))), collapse = "")
+  names(separator_mid) = paste0(rep("-", max(nchar(col_names))), collapse = "")
 
-  separator1 <- t(gsub(".", "=", colnames(fcoef_table)))
-  separator2 <- t(gsub(".", "-", colnames(fcoef_table)))
-
-  outtable <- rbind(separator1,
-                    fcoef_table,
-                    separator2,
-                    mccoef_table,
-                    separator2,
-                    sigmas_table,
-                    separator2)
-
-  row.names(outtable)[1] <- paste0(rep("=", max(nchar(colnames(coef_table)))), collapse = "")
-  row.names(outtable)[c(nrow(fcoef_table) + 2, nrow(fcoef_table) + 2 + nrow(mccoef_table) + 1, nrow(outtable))] <- paste0(rep("-", max(nchar(colnames(coef_table)))), collapse = "")
+  outtable <- rbind(separator_head,
+                    round(object$coefficients_frontier, 3),
+                    separator_mid,
+                    round(object$coefficients_mc, 3),
+                    separator_mid,
+                    round(object$sigmas, 3),
+                    separator_mid,
+                    round(object$sigmas_t, 3),
+                    separator_mid)
 
   cat("Stochastic frontier model",
       "=========================",
