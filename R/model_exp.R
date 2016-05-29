@@ -1,6 +1,6 @@
 # NORMAL / EXPONENTIAL - HOMOSCEDASTIC - CROSS SECTION DATA ----------------------------
 
-par_cs_exp <- c(lnsigma2_u = 0, lnsigma2_v = 0)
+par_cs_exp <- c(lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
 # likelihood function normal/exponential distributional assumption
 # params: beta, log(sigma_u^2), log(sigma_v^2)

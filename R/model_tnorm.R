@@ -1,6 +1,6 @@
 # NORMAL / T-NORMAL - HOMOSCEDASTIC - CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm <- c(lnsigma2_u = 0, lnsigma2_v = 0)
+par_cs_tnorm <- c(mu = 0.0, lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
 # likelihood function normal/truncated-normal distributional assumption
 # params: beta, mu, log(sigma_u^2), log(sigma_v^2)

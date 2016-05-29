@@ -1,6 +1,6 @@
 # NORMAL / T-NORMAL MODEL- CROSS SECTION DATA ----------------------------
 
-par_panel_tnorm_bc95 <- c(lnsigma2_u = 0, lnsigma2_v = 0)
+par_panel_tnorm_bc95 <- c(lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
 # Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
 # heterogeneity in efficiency term: endogeneous location parameter mu
