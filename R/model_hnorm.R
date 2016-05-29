@@ -2,6 +2,12 @@
 
 par_cs_hnorm <- c(lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
+t_par_cs_hnorm <- function(pars){
+  pars <- sqrt(exp(pars))
+  names(pars) <- c("sigma_u", "sigma_v")
+  return(pars)
+}
+
 # likelihood function normal/half-normal distributional assumption
 # params: beta, log(sigma_u^2), log(sigma_v^2)
 

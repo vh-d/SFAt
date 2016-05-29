@@ -2,9 +2,14 @@
 
 par_cs_exp <- c(lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
+t_par_cs_exp <- function(pars){
+  pars <- sqrt(exp(pars))
+  names(pars) <- c("sigma_u", "sigma_v")
+  return(pars)
+}
+
 # likelihood function normal/exponential distributional assumption
 # params: beta, log(sigma_u^2), log(sigma_v^2)
-
 ll_cs_exp <- function(params, y, X, ineff, deb) {
 
   nbetas <- ncol(X)

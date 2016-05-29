@@ -2,6 +2,12 @@
 
 par_cs_tnorm_bc95 <- c(lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
+t_par_cs_tnorm_bc95 <- function(pars){
+  pars <- sqrt(exp(pars))
+  names(pars) <- c("sigma_u", "sigma_v")
+  return(pars)
+}
+
 # Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
 # heterogeneity in efficiency term: endogeneous location parameter mu
 # implemented as Hadri et al. 2003

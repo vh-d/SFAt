@@ -2,6 +2,12 @@
 
 par_cs_tnorm <- c(mu = 0.0, lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
+t_par_cs_tnorm <- function(pars){
+  pars <- sqrt(exp(pars[2:3]))
+  names(pars) <- c("sigma_u", "sigma_v")
+  return(pars)
+}
+
 # likelihood function normal/truncated-normal distributional assumption
 # params: beta, mu, log(sigma_u^2), log(sigma_v^2)
 

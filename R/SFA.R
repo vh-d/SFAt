@@ -206,7 +206,8 @@ sfa.fit <- function(y,
   }
 
   result <- list(coeff = est$par[1:fcoeff_num],
-                 cm_coeff = est$par[(fcoeff_num + 1) : (fcoeff_num + cmcoeff_num + intercept_CM)],
+                 cm_coeff = if (!is.null(spec)) est$par[(fcoeff_num + 1) : (fcoeff_num + cmcoeff_num + intercept_CM)] else NULL,
+                 cv_coeff = NULL,
                  residuals = as.vector(y - X %*% est$par[1:fcoeff_num]),
                  parameters = est$par,
                  N = length(y),
@@ -218,6 +219,7 @@ sfa.fit <- function(y,
                              intercept_CM = intercept_CM,
                              dist = dist,
                              spec = spec,
+                             model_spec = model_spec,
                              structure = structure),
                  loglik = -est$val,
                  hessian = -est$hessian,
@@ -308,11 +310,11 @@ summary.SFA <- function(object) {
   row.names(coef_table) <- names(object$parameters)
 
   fcoef_table <- coef_table[1:length(object$coeff), , drop = F]
-  mccoef_table <- coef_table[length(object$coeff) + 1 : length(object$cm_coeff), , drop = F]
+  mccoef_table <- if (!is.null(object$cm_coeff)) coef_table[length(object$coeff) + 1 : length(object$cm_coeff), , drop = F] else NULL
   sigmas_table <- coef_table[-(1:(length(object$coeff)+length(object$cm_coeff))), , drop = F]
-  sigmas_t_table <- sigmas_table
-  sigmas_t_table[] <- NA
-  sigmas_t_table[, 1] <- sqrt(exp(sigmas_table[, 1]))
+  sigmas_t_table <- as.matrix(do.call(paste0("t_par_", object$call$model_spec),
+                                      args = list(pars = as.vector(sigmas_table[, 1]))))
+  colnames(sigmas_t_table)[1] <- colnames(sigmas_table)[1]
 
   ans <- list(call = object$call,
               N = object$N,
@@ -339,17 +341,22 @@ print.summary.SFA <- function(object) {
   separator_head <- t(gsub(".", "=", col_names))
   separator_mid <- t(gsub(".", "-", col_names))
 
-  names(separator_head) = paste0(rep("=", max(nchar(col_names))), collapse = "")
-  names(separator_mid) = paste0(rep("-", max(nchar(col_names))), collapse = "")
+  maxrowname <- max(c(nchar(rownames(object$coefficients_frontier)),
+                      nchar(rownames(object$coefficients_mc)),
+                      nchar(rownames(object$sigmas)),
+                      nchar(rownames(object$sigmas_t))))
+
+  rownames(separator_head) <- paste0(rep("=", maxrowname), collapse = "")
+  rownames(separator_mid) <-  paste0(rep("-", maxrowname), collapse = "")
 
   outtable <- rbind(separator_head,
                     round(object$coefficients_frontier, 3),
                     separator_mid,
-                    round(object$coefficients_mc, 3),
-                    separator_mid,
+                    if (!is.null(object$coefficients_mc)) round(object$coefficients_mc, 3) else NULL,
+                    if (!is.null(object$coefficients_mc)) separator_mid else NULL,
                     round(object$sigmas, 3),
                     separator_mid,
-                    round(object$sigmas_t, 3),
+                    cbind(round(object$sigmas_t, 3), matrix("", nrow = nrow(object$sigmas_t), ncol = ncol(separator_mid)-1)),
                     separator_mid)
 
   cat("Stochastic frontier model",
