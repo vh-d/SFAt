@@ -93,61 +93,56 @@ sfa.fit <- function(y,
         cmcoeff_num, " CM coefficient parameters,", "\n")
   }
 
+  # ---- MODEL SPECIFICATION ----
+
+  model_spec <- paste0(structure, "_",
+                       dist,
+                       if (is.null(spec)) NULL else paste0("_", spec))
+
+  model_parameters <- eval(parse(text = paste0("par_", model_spec)))
+
   # ---- STARTING VALUES ----
 
   if (is.null(sv_f)) {
     if (is.null(spec)) {
 
-      # fit OLS for starting values of betas and sigma
+      # fit OLS for starting values of frontier model coefficients
       lmfit <- lm(y ~ X - 1)
-      if (deb) print(summary(lmfit))
 
-      sv_f <- switch (dist,
-                      tnorm = c(lmfit$coefficients,
-                                mu = 0,
-                                lnsigma2_u = 0.5,
-                                lnsigma2_v = 0.5),
-
-                      hnorm = c(lmfit$coefficients,
-                                lnsigma2_u = 0.5,
-                                lnsigma2_v = 0.5),
-
-                      exp = c(lmfit$coefficients,
-                              lnsigma2_u = 0.5,
-                              lnsigma2_v = 0.5))
-
+      sv_f <- lmfit$coefficients
       names(sv_f)[1:length(fcoeff_names)] <- fcoeff_names
+      sv_cm <- NULL
+
     } else {
 
-      # fit OLS for starting values of beta parameters
+      # fit OLS for starting values of frontier model coefficients and conditional mean model coefficients
       lmfit <- lm(y ~ X + I(ineff*CM) - 1)
-      if (deb) print(summary(lmfit))
 
-      sv_f <-
-        c(lmfit$coefficients[1:fcoeff_num],
-          if (intercept_CM) 0 else NULL,
-          lmfit$coefficients[(fcoeff_num + 1) : (fcoeff_num + cmcoeff_num)],
-          2, 2)
+      sv_f <- lmfit$coefficients[1:fcoeff_num]
+      names(sv_f) <- fcoeff_names
+
+      sv_cm <- c(if (intercept_CM) 0 else NULL,
+                 lmfit$coefficients[(fcoeff_num + 1) : (fcoeff_num + cmcoeff_num)])
+
+      names(sv_cm) <- c(if (intercept_CM) "mu" else NULL,
+                        if (is.null(colnames(CM))) paste0("delta_", 1:(cmcoeff_num + intercept_CM)) else colnames(CM))
 
       if (intercept_CM) {
-        # cmcoeff_num <- cmcoeff_num + 1
         CM <- cbind(mu_0 = 1, CM)
       }
 
-      names(sv_f) <- c(fcoeff_names,
-                       if (is.null(colnames(CM))) paste0("delta_", 1:(cmcoeff_num + intercept_CM)) else colnames(CM),
-                       "lnsigma2_u",
-                       "lnsigma2_v")
     }
+
+    if (deb) print(summary(lmfit))
   }
 
-  if (deb) print(sv_f)
+
+  # concatenate all coefficients and model parameters
+  sv <- c(sv_f, sv_cm, model_parameters)
+  if (deb) print(sv)
 
   if (is.null(ll)) {
-    ll_fn_call <- paste0("ll", "_",
-                         structure, "_",
-                         dist,
-                         if (is.null(spec)) NULL else paste0("_", spec))
+    ll_fn_call <- paste0("ll", "_", model_spec)
   } else { # to-do: check existence of ll function given by user
     ll_fn_call <- ll
   }
@@ -158,10 +153,8 @@ sfa.fit <- function(y,
     print(ll_fn_call)
   }
 
-  # lowerb <- c(rep(-Inf, fcoeff_num + cmcoeff_num), 0.000001, 0.000001)
-
   if (is.null(CM)) {
-    est <- optim(sv_f,
+    est <- optim(sv,
                  fn = eval(parse(text = ll_fn_call)),
                  method = opt_method,
                  control = opt_control,
@@ -171,7 +164,7 @@ sfa.fit <- function(y,
                  ineff = ineff,
                  deb = debll)
   } else {
-    est <- optim(sv_f,
+    est <- optim(sv,
                  fn = eval(parse(text = ll_fn_call)),
                  method = opt_method,
                  control = opt_control,
@@ -180,7 +173,7 @@ sfa.fit <- function(y,
                  X = X,
                  CM = CM,
                  ineff = ineff,
-                 debll = deb)
+                 deb = debll)
   }
 
   result <- list(coeff = est$par[1:fcoeff_num],
