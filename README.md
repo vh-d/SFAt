@@ -23,6 +23,7 @@ To-do:
 - panel data models
     - firm specific intercepts in conditional mean equations in (Battese-Coelli, 1995) model
     - firm specific intercepts in conditional variance equations in (Battese-Coelli, 1995) model
+- robust standard errors
 - SFA() funtion with Formula interface 
 - add tests
 - rewrite likelihood functions in C++ (using Rcpp)
