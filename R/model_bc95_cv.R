@@ -1,6 +1,6 @@
 # NORMAL / T-NORMAL MODEL- CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm_bc95_cv <- c(lnsigma2_v = 0.5)
+par_cs_tnorm_bc95_cv <- NULL
 
 t_par_cs_tnorm_bc95_cv <- function(pars){
   pars <- sqrt(exp(pars))
@@ -11,27 +11,42 @@ t_par_cs_tnorm_bc95_cv <- function(pars){
 # Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
 # heterogeneity in efficiency term: endogeneous location parameter mu
 # implemented as Hadri et al. 2003
-# parameters: f_coeff, cm_coeff, cv_coeff, sigma2_v
-ll_cs_tnorm_bc95_cv <- function(params, y, X, CM, CV, ineff, deb) {
+# parameters: f_coeff, cm_coeff, cv_u_coeff, cv_v_coeff
+ll_cs_tnorm_bc95_cv <- function(params,
+                                y, X,
+                                CV_u,
+                                CV_v,
+                                CM,
+                                ineff,
+                                deb) {
 
   # extract parameters from parameter vector
   n_f_coeff <- ncol(X) # number of coeffs for frontier model
-  n_cm_coeff <- ncol(CM) # number of coeffs for conditional mean model
-  n_cv_coeff <- ncol(CV) # number of coeffs for conditional variance model
+  n_cm_coeff <- if (is.matrix(CM)) ncol(CM) else length(CM) # number of coeffs for conditional mean model
+  n_cv_u_coeff <- if (is.matrix(CV_u)) ncol(CV_u) else length(CV_u)  # number of coeffs for conditional variance of inefficiency term model
+  n_cv_v_coeff <- if (is.matrix(CV_v)) ncol(CV_v) else length(CV_v) # number of coeffs for conditional variance of the symmetric error model
 
-  if (length(params) != n_f_coeff + n_cm_coeff + n_cv_coeff + 1) {
-    stop("Incorrect nuber of parameters. ",
-         n_f_coeff, "+", n_cm_coeff, "+", n_cv_coeff, "+ 1 needed, but ", length(params), " supplied.")
+  if (deb) {
+    cat("Parameters: ", params)
   }
 
-  f_coeff <- params[1:n_f_coeff]
-  cm_coeff <- params[(n_f_coeff + 1):(n_f_coeff + n_cm_coeff)]
-  cv_coeff <- params[(n_f_coeff + n_cm_coeff + 1):(n_f_coeff + n_cm_coeff + n_cv_coeff)]
+  if (length(params) != n_f_coeff + n_cm_coeff + n_cv_u_coeff + n_cv_v_coeff) {
+    stop("Incorrect nuber of parameters. ",
+         n_f_coeff, "+", n_cm_coeff, "+", n_cv_u_coeff, "+", n_cv_v_coeff, " needed, but ", length(params), " supplied.")
+  }
 
-  lnsigma2_v <- params[n_f_coeff + n_cm_coeff + n_cv_coeff + 1] # variance of symmetric error term
+  indeces <- cumsum(c(n_f_coeff,
+                      n_cv_u_coeff,
+                      n_cv_v_coeff,
+                      n_cm_coeff))
 
-  sigma2_u <- as.vector(exp(CV %*% cv_coeff))
-  sigma2_v <- exp(lnsigma2_v)
+  f_coeff    <- params[             1:indeces[1]]
+  cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
+  cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
+  cm_coeff   <- params[(indeces[3] + 1):indeces[4]]
+
+  sigma2_u <- as.vector(exp(CV_u %*% cv_u_coeff))
+  sigma2_v <- as.vector(exp(CV_v %*% cv_v_coeff))
 
   sigma_u <- sqrt(sigma2_u)
   sigma_v <- sqrt(sigma2_v)
@@ -43,8 +58,10 @@ ll_cs_tnorm_bc95_cv <- function(params, y, X, CM, CV, ineff, deb) {
   if (deb) cat("Total of ", length(params), " parameters: \n",
                "frontier coeffs: ", paste(f_coeff), "\n",
                "cm coeffs: ", paste(cm_coeff), "\n",
-               "cv coeffs: ", paste(cv_coeff), "\n",
-               "Sigma2_v: ", sigma2_v, "\n")
+               "cv_u coeffs: ", paste(cv_u_coeff), "\n",
+               "cv_v coeffs: ", paste(cv_v_coeff), "\n",
+               "sigma_u: ", sigma_u, "\n",
+               "sigma_v: ", sigma_v, "\n")
 
   N <- length(y)
 
@@ -54,18 +71,17 @@ ll_cs_tnorm_bc95_cv <- function(params, y, X, CM, CV, ineff, deb) {
 
   mu_ast <- (sigma2_v*Zdelta - sigma2_u*eps) / sigma2
 
-  temp_expr1 <- -0.5 * sum(log(2*pi) + log(sigma2))
-  temp_expr2 <- -0.5 * sum(((eps + Zdelta)^2)/sigma2)
-  temp_expr3 <- sum(log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u)))
+  if (deb) {
+    cat(length(Zdelta) == N, "\n",
+        length(eps) == N, "\n",
+        length(mu_ast) == N, "\n",
+        length(sigma_ast) == N, "\n",
+        length(sigma2) == N, "\n",
+        length(sigma_u) == N, "\n")
+  }
 
-  if (deb) cat("Log-likelihood: ",
-               temp_expr1, " + ", temp_expr2, " + ",
-               temp_expr3, " + ",
-               # temp_expr4,
-               "\n")
-
-  # result <- temp_expr1 + temp_expr2 + temp_expr3 + temp_expr4
-  result <- temp_expr1 + temp_expr2 + temp_expr3
+  result <- sum(-0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
+                      log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u)))
 
   if (deb) cat("Loglikelihood: ", result,  "\n")
 
