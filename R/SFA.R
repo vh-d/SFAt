@@ -24,6 +24,7 @@
 #' @param opt_method optimization method.
 #' @param opt_control list of options for optimization routine.
 #' @param deb debug mode (TRUE/FALSE).
+#' @param debll debug mode of log likelihood functions (TRUE/FALSE).
 #' @details
 #' Notice that the choice of optimization method may have significant impact on the results. It is recommanded to experiment with different optimization algorithms. Recommended are:
 #' \itemize{
@@ -72,14 +73,14 @@ sfa.fit <- function(y,
                     # structure = "cs",
                     dist = c("tnorm", "hnorm", "exp"),
                     spec = NULL,
-                    intercept = TRUE,
-                    intercept_cm = TRUE,
-                    intercept_cv_u = TRUE,
-                    intercept_cv_v = TRUE,
-                    sv_f = NULL, # to-do list of starting value vectors
-                    sv_cm = NULL,
-                    sv_cv_u = NULL,
-                    sv_cv_v = NULL,
+                    intercept = list(f = TRUE,
+                                     cm = TRUE,
+                                     cv_u = TRUE,
+                                     cv_v = TRUE),
+                    sv = list(f = NULL,
+                               cm = NULL,
+                               cv_u = NULL,
+                               cv_v = NULL),
                     ll = NULL,
                     opt_method = "SANN",
                     opt_control = NULL,
@@ -106,7 +107,7 @@ sfa.fit <- function(y,
   fcoeff_num <- ncol(X) # number of coefficients
   fcoeff_names <- colnames(X)
 
-  if (intercept) {
+  if (intercept$f) {
     fcoeff_num <- fcoeff_num + 1
     X <- cbind(1, X)
     fcoeff_names <- c("intercept", fcoeff_names)
@@ -114,16 +115,16 @@ sfa.fit <- function(y,
 
   # inefficiency - (un)conditional mean for t-norm distribution
   if (is.null(CM)) {
-    if (!intercept_cm) {
-      warning("Either intercept_cm has to be set TRUE or CM has to be provided. Overriding intercept_cm = TRUE ...")
-      intercept_cm = T
+    if (!intercept$cm) {
+      warning("Either intercept$cm has to be set TRUE or CM has to be provided. Overriding intercept$cm = TRUE ...")
+      intercept$cm = T
     }
     CM <- c(mu = 1.0)
     cm_model <- F
     coeff_cm_num <- 1
   } else {
     if (dist != "tnorm") stop("Conditional mean of inefficiency term model only possible for normal/t-normal model. ")
-    if (intercept_cm) {
+    if (intercept$cm) {
       CM <- cbind(mu_0 = 1, CM)
     }
     cm_model <- T
@@ -133,16 +134,16 @@ sfa.fit <- function(y,
 
   # inefficiency - (un)conditional variance (heteroskedasticity in inefficiency)
   if (is.null(CV_u)) {
-    if (!intercept_cv_u) {
-      warning("Either intercept_cv has to be set TRUE or CV_u has to be provided. Overriding intercept_cv = TRUE ...")
-      intercept_cv_u = T
+    if (!intercept$cv_u) {
+      warning("Either intercept$cv has to be set TRUE or CV_u has to be provided. Overriding intercept$cv = TRUE ...")
+      intercept$cv_u = T
     }
     CV_u <- c("lnsigma2_u" = 1)
     cv_u_model <- F
     coeff_cv_u_num <- 1
     coeff_cv_u_names <- "lnsigma2_u"
   } else {
-    if (intercept_cv_u) {
+    if (intercept$cv_u) {
       CV_u <- cbind(sigma_u_0 = 1, CV_u)
     }
     cv_u_model <- T
@@ -152,16 +153,16 @@ sfa.fit <- function(y,
 
   #  symmetric error term - (un)conditional variance (heteroskedasticity in frontier model)
   if (is.null(CV_v)) {
-    if (!intercept_cv_v) {
-      warning("Either intercept_cv has to be set TRUE or CV_v has to be provided. Overriding intercept_cv = TRUE ...")
-      intercept_cv_v = T
+    if (!intercept$cv_v) {
+      warning("Either intercept$cv has to be set TRUE or CV_v has to be provided. Overriding intercept$cv = TRUE ...")
+      intercept$cv_v = T
     }
     CV_v <- c("lnsigma2_v" = 1)
     cv_v_model <- F
     coeff_cv_v_num <- 1
     coeff_cv_v_names <- "lnsigma2_v"
   } else {
-    if (intercept_cv_v) {
+    if (intercept$cv_v) {
       CV_v <- cbind(sigma_v_0 = 1, CV_v)
     }
     cv_v_model <- T
@@ -204,34 +205,34 @@ sfa.fit <- function(y,
   lmfit <- lm(y ~ X - 1) # intercept is part of X already
   if (deb) print(summary(lmfit))
 
-  if (is.null(sv_f)) {
-      sv_f <- lmfit$coefficients
-      names(sv_f)[1:length(fcoeff_names)] <- fcoeff_names
+  if (is.null(sv$f)) {
+      sv$f <- lmfit$coefficients
+      names(sv$f)[1:length(fcoeff_names)] <- fcoeff_names
   } # to-do: else check length
 
   if (dist == "tnorm") {
-    if (is.null(sv_cm)) {
-      sv_cm <- rep(0.0, coeff_cm_num)
-      names(sv_cm) <- coeff_cm_names
+    if (is.null(sv$cm)) {
+      sv$cm <- rep(0.0, coeff_cm_num)
+      names(sv$cm) <- coeff_cm_names
     } # to-do: else check length
-  } else sv_cm = NULL
+  } else sv$cm = NULL
 
-  if (is.null(sv_cv_u)) {
-    sv_cv_u <- rep(0.0, coeff_cv_u_num)
-    names(sv_cv_u) <- coeff_cv_u_names
+  if (is.null(sv$cv_u)) {
+    sv$cv_u <- rep(0.0, coeff_cv_u_num)
+    names(sv$cv_u) <- coeff_cv_u_names
   } # to-do: else check length
 
-  if (is.null(sv_cv_v)) {
-    sv_cv_v <- rep(0.0, coeff_cv_v_num)
-    names(sv_cv_v) <- coeff_cv_v_names
+  if (is.null(sv$cv_v)) {
+    sv$cv_v <- rep(0.0, coeff_cv_v_num)
+    names(sv$cv_v) <- coeff_cv_v_names
   } # to-do: else check length
 
   # concatenate all coefficients and model parameters into a single vector for the optimization routine
-  sv <- c(sv_f,
-          sv_cv_u,
-          sv_cv_v,
-          sv_cm,
-          model_parameters)
+  svv <- c(sv$f,
+           sv$cv_u,
+           sv$cv_v,
+           sv$cm,
+           model_parameters)
 
   if (deb) cat("Starting values: ",
                sv)
@@ -258,7 +259,7 @@ sfa.fit <- function(y,
   # validate parameter vector
   parcheck <- do.call(what = paste0("par_", model_spec, "_check"),
                       args = list(
-                        params = sv,
+                        params = svv,
                         indeces = indeces,
                         y = y,
                         X = X,
@@ -270,7 +271,7 @@ sfa.fit <- function(y,
 
   # ------- MLE ----------
 
-  est <- optim(sv,
+  est <- optim(svv,
                fn = eval(parse(text = ll_fn_call)),
                method = opt_method,
                control = opt_control,
@@ -313,10 +314,10 @@ sfa.fit <- function(y,
                                        CV_v = CV_v),
                  call           = list(ineff = ineff,
                                        intercept = intercept,
-                                       intercept_cm = intercept_cm,
                                        dist = dist,
                                        spec = spec,
                                        model_spec = model_spec,
+                                       sv = sv,
                                        structure = structure),
                  loglik         = -est$val,
                  hessian        = -est$hessian,
@@ -335,9 +336,11 @@ sfa.fit <- function(y,
 # do not export
 SFA <- function(formula,
                 data = NULL,
-                intercept = TRUE,
-                intercept_cm = TRUE,
-                dist = "hnormal",
+                intercept = list(f = TRUE,
+                                 cm = TRUE,
+                                 cv_u = TRUE,
+                                 cv_v = TRUE),
+                dist = "hnorm",
                 sv_f = NULL,
                 par_mu = NULL,
                 ineff = -1,
@@ -371,10 +374,9 @@ SFA <- function(formula,
           X = X,
           CM = CM,
           intercept = intercept,
-          intercept_cm = intercept_cm,
           dist = dist,
           model = model,
-          sv_f = sv_f,
+          sv = list(f = sv_f),
           form = form,
           method = method,
           ...)
