@@ -1,8 +1,8 @@
 # NORMAL / T-NORMAL MODEL- CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm_bc95 <- c(lnsigma2_u = 0.5, lnsigma2_v = 0.5)
+par_cs_tnorm_bc95_homo <- c(lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
-t_par_cs_tnorm_bc95 <- function(pars){
+t_par_cs_tnorm_bc95_homo <- function(pars){
   pars <- sqrt(exp(pars))
   names(pars) <- c("sigma_u", "sigma_v")
   return(pars)
@@ -12,7 +12,7 @@ t_par_cs_tnorm_bc95 <- function(pars){
 # heterogeneity in efficiency term: endogeneous location parameter mu
 # implemented as Hadri et al. 2003
 # parameters: beta_coef, delta_coef, sigma2_v, sigma2_u
-ll_cs_tnorm_bc95 <- function(params, y, X, CM, ineff, deb) {
+ll_cs_tnorm_bc95_homo <- function(params, y, X, CM, ineff, deb) {
 
   # extract parameters from parameter vector
   nbetas <- ncol(X) # number of beta coeffs
@@ -79,7 +79,7 @@ ll_cs_tnorm_bc95 <- function(params, y, X, CM, ineff, deb) {
   return(-result)
 }
 
-u_cs_tnorm_bc95 <- function(object, estimator) {
+u_cs_tnorm_bc95_homo <- function(object, estimator) {
   # extract sigmas from model object
   lnsigma2_u <- object$parameters[length(object$coeff) + length(object$cm_coeff) + 1]
   lnsigma2_v <- object$parameters[length(object$coeff) + length(object$cm_coeff) + 2]
