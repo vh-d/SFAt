@@ -60,7 +60,7 @@ predictFrontier <- function(object, newdata) {
                newdata)
   }
 
-  return(as.vector(X %*% object$coeff))
+  return(as.vector(X %*% object$coeff_frontier))
 }
 
 
