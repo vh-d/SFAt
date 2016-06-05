@@ -104,7 +104,7 @@ model_ex2 <- sfa.fit(y = data_ex2_cm$y,
                      X = cbind(a = data_ex2_cm$x1, b = data_ex2_cm$x2),
                      CM = cbind(c = data_ex2_cm$z1, d = data_ex2_cm$z2),
                      dist = "tnorm",
-                     spec  = "bc95_cv",
+                     spec  = "bc95",
                      # deb = T, debll = T,
                      opt_method = "SANN",
                      opt_control = list(maxit = 50e3))
