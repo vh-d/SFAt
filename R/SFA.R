@@ -9,13 +9,11 @@
 #' @param CM data for conditional mean model of the inefficiency (asymmetric error) term.
 #' @param CV_u data for conditional variance model of the inefficiency (asymmetric error) term.
 #' @param CV_v data for conditional variance model of the symmetric error term.
-#' @param K matrix of panel data indeces.
 #' @param ineff -1 (or 1) for production (or cost) function, where inefficiency decreases (or increases) the total output (or costs).
 #' @param intercept TRUE/FALSE if the intercept term should be added to the main formula.
 #' @param intercept_cm TRUE/FALSE if the intercept should be added to the conditional mean equation for the asymmetric term
 #' @param intercept_cv_u TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.
 #' @param intercept_cv_v TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.
-#' @param structure "cs" for cross-section or "panel" for panel data model. (not functional yet)
 #' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
 #' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
 #' @param sv_f starting values for frontier model parameters.
@@ -69,9 +67,9 @@ sfa.fit <- function(y,
                     CM = NULL,
                     CV_u = NULL,
                     CV_v = NULL,
-                    K = NULL,
+                    # K = NULL,
                     ineff = -1L,
-                    structure = "cs",
+                    # structure = "cs",
                     dist = c("tnorm", "hnorm", "exp"),
                     spec = NULL,
                     intercept = TRUE,
@@ -89,6 +87,7 @@ sfa.fit <- function(y,
                     debll = F
 ) {
 
+  structure <- "cs"
   # ------ VALIDATE ARGUMENTS --------
 
   dist <- match.arg(dist)
@@ -170,14 +169,14 @@ sfa.fit <- function(y,
     coeff_cv_v_names <- colnames(CV_v) # coefficients names
   }
 
-  # panel data dimensions
-  ispanel <- !is.null(K)
-  if (ispanel) {
-    stopifnot(is.matrix(K) | is.data.frame(K), dim(K) == 2, dim(K)[2] == length(y), is.integer(K[, 2]))
-    K1 <- levels(as.factor(K[, 1]))
-    k = nlevels(K1)
-    K2 <- K[, 2]
-  }
+  # # panel data dimensions
+  # ispanel <- !is.null(K)
+  # if (ispanel) {
+  #   stopifnot(is.matrix(K) | is.data.frame(K), dim(K) == 2, dim(K)[2] == length(y), is.integer(K[, 2]))
+  #   K1 <- levels(as.factor(K[, 1]))
+  #   k = nlevels(K1)
+  #   K2 <- K[, 2]
+  # }
 
   if (deb) {
     cat(ifelse(intercept == T,
