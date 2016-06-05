@@ -2,6 +2,27 @@
 
 par_cs_tnorm_bc95_cv <- NULL
 
+par_cs_exp_check <- function(params,
+                             indeces,
+                             y, X,
+                             CM = NULL,
+                             CV_u,
+                             CV_v) {
+
+  # extract parameters from parameter vector
+  n_f_coeff <- ncol(X) # number of coeffs for frontier model
+  n_cv_u_coeff <- if (is.matrix(CV_u)) ncol(CV_u) else length(CV_u)  # number of coeffs for conditional variance of inefficiency term model
+  n_cv_v_coeff <- if (is.matrix(CV_v)) ncol(CV_v) else length(CV_v) # number of coeffs for conditional variance of the symmetric error model
+  n_cm_coeff <- if (is.matrix(CM)) ncol(CM) else length(CM) # number of coeffs for conditional mean model
+
+  if (length(params) != n_f_coeff + n_cm_coeff + n_cv_u_coeff + n_cv_v_coeff) {
+    stop("Incorrect nuber of parameters. ",
+         n_f_coeff, "+", n_cm_coeff, "+", n_cv_u_coeff, "+", n_cv_v_coeff, " needed, but ", length(params), " supplied.")
+  }
+
+  return(TRUE)
+}
+
 t_par_cs_tnorm_bc95_cv <- function(pars){
   pars <- sqrt(exp(pars))
   names(pars) <- c("sigma_v")
@@ -13,6 +34,7 @@ t_par_cs_tnorm_bc95_cv <- function(pars){
 # implemented as Hadri et al. 2003
 # parameters: f_coeff, cm_coeff, cv_u_coeff, cv_v_coeff
 ll_cs_tnorm_bc95_cv <- function(params,
+                                indeces,
                                 y, X,
                                 CV_u,
                                 CV_v,
@@ -20,25 +42,9 @@ ll_cs_tnorm_bc95_cv <- function(params,
                                 ineff,
                                 deb) {
 
-  # extract parameters from parameter vector
-  n_f_coeff <- ncol(X) # number of coeffs for frontier model
-  n_cm_coeff <- if (is.matrix(CM)) ncol(CM) else length(CM) # number of coeffs for conditional mean model
-  n_cv_u_coeff <- if (is.matrix(CV_u)) ncol(CV_u) else length(CV_u)  # number of coeffs for conditional variance of inefficiency term model
-  n_cv_v_coeff <- if (is.matrix(CV_v)) ncol(CV_v) else length(CV_v) # number of coeffs for conditional variance of the symmetric error model
-
   if (deb) {
     cat("Parameters: ", params)
   }
-
-  if (length(params) != n_f_coeff + n_cm_coeff + n_cv_u_coeff + n_cv_v_coeff) {
-    stop("Incorrect nuber of parameters. ",
-         n_f_coeff, "+", n_cm_coeff, "+", n_cv_u_coeff, "+", n_cv_v_coeff, " needed, but ", length(params), " supplied.")
-  }
-
-  indeces <- cumsum(c(n_f_coeff,
-                      n_cv_u_coeff,
-                      n_cv_v_coeff,
-                      n_cm_coeff))
 
   f_coeff    <- params[             1:indeces[1]]
   cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
