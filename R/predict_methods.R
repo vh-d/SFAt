@@ -44,7 +44,6 @@ inefficiencyTerm.SFA <- function(object, estimator) {
                       dist,
                       if (is.null(spec)) NULL else paste0("_", spec))
 
-  # print(u_fn_call)
   out <- do.call(u_fn_call, list(object = object, estimator = estimator))
 
   return(out)

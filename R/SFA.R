@@ -13,15 +13,15 @@
 #' @param ineff -1 (or 1) for production (or cost) function, where inefficiency decreases (or increases) the total output (or costs).
 #' @param intercept TRUE/FALSE if the intercept term should be added to the main formula.
 #' @param intercept_cm TRUE/FALSE if the intercept should be added to the conditional mean equation for the asymmetric term
-#' @param intercept_cv_u TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula. (not functional yet)
-#' @param intercept_cv_v TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula. (not functional yet)
+#' @param intercept_cv_u TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.
+#' @param intercept_cv_v TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.
 #' @param structure "cs" for cross-section or "panel" for panel data model. (not functional yet)
 #' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
 #' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
 #' @param sv_f starting values for frontier model parameters.
 #' @param sv_cm starting values for conditional mean model parameters.
-#' @param sv_cv_u starting values for conditional variance of the inefficiency term model parameters. (experimental)
-#' @param sv_cv_v starting values for conditional variance of the symmetric term model parameters. (not functional yet)
+#' @param sv_cv_u starting values for conditional variance of the inefficiency term model parameters.
+#' @param sv_cv_v starting values for conditional variance of the symmetric term model parameters.
 #' @param ll allows custom log-likelihood function that will be MINIMIZED.
 #' @param opt_method optimization method.
 #' @param opt_control list of options for optimization routine.
@@ -407,26 +407,12 @@ summary.SFA <- function(object) {
   colnames(coef_table) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)", "95% (low)", "95% (high)")
   row.names(coef_table) <- names(object$parameters)
 
-  # indeces <- cumsum(c(length(object$coeff_frontier),
-  #                     length(object$coeff_cv_u),
-  #                     length(object$coeff_cv_v),
-  #                     length(object$coeff_cm)))
-
-  # coeff_f_table <- coef_table[1:length(object$coeff), , drop = F]
-  # coeff_cm_table <- if (!is.null(object$coeff_cm)) coef_table[length(object$coeff) + 1 : length(object$coeff_cm), , drop = F] else NULL
-  # sigmas_table <- coef_table[-(1:(length(object$coeff)+length(object$coeff_cm))), , drop = F]
-  # sigmas_t_table <- as.matrix(do.call(paste0("t_par_", object$call$model_spec),
-  #                                     args = list(pars = as.vector(sigmas_table[, 1]))))
-  # colnames(sigmas_t_table)[1] <- colnames(sigmas_table)[1]
   indeces <- object$indeces
   coeff_f_table    <- coef_table[              1  : indeces[1], , drop = F]
   coeff_cv_u_table <- coef_table[(indeces[1] + 1) : indeces[2], , drop = F]
   coeff_cv_v_table <- coef_table[(indeces[2] + 1) : indeces[3], , drop = F]
   coeff_cm_table   <- if (!is.null(object$coeff_cm))
                       coef_table[(indeces[3] + 1) : indeces[4], , drop = F] else NULL
-  # sigmas_t_table <- as.matrix(do.call(paste0("t_par_", object$call$model_spec),
-  #                                     args = list(pars = as.vector(sigmas_table[, 1]))))
-  # colnames(sigmas_t_table)[1] <- colnames(sigmas_table)[1]
 
   ans <- list(call = object$call,
               N = object$N,
@@ -469,11 +455,7 @@ print.summary.SFA <- function(object) {
                     round(object$coefficients_cv_u, 3),
                     separator_mid,
                     round(object$coefficients_cv_v, 3),
-                    separator_mid
-                    # ,
-                    # cbind(round(object$sigmas_t, 3), matrix("", nrow = nrow(object$sigmas_t), ncol = ncol(separator_mid)-1)),
-                    # separator_mid
-                    )
+                    separator_mid)
 
   cat("Stochastic frontier model",
       "=========================",
