@@ -77,8 +77,8 @@ ll_cs_exp <- function(params,
 u_cs_exp <- function(object, estimator) {
 
   # extract sigmas from the model object
-  sigma2_u <- as.vector(exp(object$data$CV_u %*% object$cv_u_coeff))
-  sigma2_v <- as.vector(exp(object$data$CV_v %*% object$cv_v_coeff))
+  sigma2_u <- as.vector(exp(object$data$CV_u %*% object$coeff_cv_u))
+  sigma2_v <- as.vector(exp(object$data$CV_v %*% object$coeff_cv_v))
 
   # derive the rest of the parameters
   sigma_u <- sqrt(sigma2_u)
