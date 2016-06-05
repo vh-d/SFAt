@@ -210,10 +210,12 @@ sfa.fit <- function(y,
       names(sv_f)[1:length(fcoeff_names)] <- fcoeff_names
   } # to-do: else check length
 
-  if (is.null(sv_cm)) {
-    sv_cm <- rep(0.0, coeff_cm_num)
-    names(sv_cm) <- coeff_cm_names
-  } # to-do: else check length
+  if (dist == "tnorm") {
+    if (is.null(sv_cm)) {
+      sv_cm <- rep(0.0, coeff_cm_num)
+      names(sv_cm) <- coeff_cm_names
+    } # to-do: else check length
+  } else sv_cm = NULL
 
   if (is.null(sv_cv_u)) {
     sv_cv_u <- rep(0.0, coeff_cv_u_num)
@@ -249,6 +251,23 @@ sfa.fit <- function(y,
     print(ll_fn_call)
   }
 
+  indeces <- cumsum(c(fcoeff_num,
+                      coeff_cv_u_num,
+                      coeff_cv_v_num,
+                      coeff_cm_num))
+
+  # validate parameter vector
+  parcheck <- do.call(what = paste0("par_", model_spec, "_check"),
+                      args = list(
+                        params = sv,
+                        indeces = indeces,
+                        y = y,
+                        X = X,
+                        CM = CM,
+                        CV_u = CV_u,
+                        CV_v = CV_v))
+  if (deb & parcheck) cat("Parameters check OK.", "\n")
+
 
   # ------- MLE ----------
 
@@ -257,6 +276,7 @@ sfa.fit <- function(y,
                method = opt_method,
                control = opt_control,
                hessian = T,
+               indeces = indeces,
                y = y,
                X = X,
                CM = CM,
@@ -267,10 +287,6 @@ sfa.fit <- function(y,
 
 
   # ---------- RETURN ------------
-  indeces <- cumsum(c(fcoeff_num,
-                      coeff_cv_u_num,
-                      coeff_cv_v_num,
-                      coeff_cm_num))
 
   coeff_frontier <- est$par[1 : (indeces[1])]
   coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
