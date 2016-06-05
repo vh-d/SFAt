@@ -17,21 +17,25 @@ library(devtools)
 install_github("vh-d/SFAt")
 ```
 
+Known issues
+-----------
+- truncated-normal model have to be specified as bc95 model (without passing data in CM) 
+- fix efficiency prediction for u computed via E(u_i)
+
 To-do:
 ------
 
 - more verbose summary output
-- fix efficiency prediction for u computed via E(u_i)
 - panel data models
     - time-invariant model
     - time-varying
       - decay model
-      - fixed effects in conditional mean equations in (Battese-Coelli, 1995) model
-      - fixed effects in conditional variance equations in (Battese-Coelli, 1995) model
+      - fixed effects in conditional mean equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
+      - fixed effects in conditional variance equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
 - robust standard errors
 - SFA() funtion with Formula interface 
 - add tests
-- rewrite likelihood functions in C++ (using Rcpp)
+- rewrite likelihood functions in C++ (using Rcpp) 
 - explore `nloptr`, `ucminf` and `maxLik` packages for MLE optimizations  
 
 Contributions and suggestions are welcome!

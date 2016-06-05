@@ -10,16 +10,22 @@
 #' @param CV_u data for conditional variance model of the inefficiency (asymmetric error) term.
 #' @param CV_v data for conditional variance model of the symmetric error term.
 #' @param ineff -1 (or 1) for production (or cost) function, where inefficiency decreases (or increases) the total output (or costs).
-#' @param intercept TRUE/FALSE if the intercept term should be added to the main formula.
-#' @param intercept_cm TRUE/FALSE if the intercept should be added to the conditional mean equation for the asymmetric term
-#' @param intercept_cv_u TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.
-#' @param intercept_cv_v TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula.
+#' @param intercept list of logical values:
+#' \itemize{
+#' \item f -- TRUE if the intercept term should be added to the main formula.
+#' \item cm -- TRUE if the intercept should be added to the conditional mean equation for the asymmetric term
+#' \item cv_u -- TRUE if the intercept should be added to the conditional inefficiency variance formula.
+#' \item cv_v -- TRUE if the intercept should be added to the conditional inefficiency variance formula.
+#' }
 #' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
 #' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
-#' @param sv_f starting values for frontier model parameters.
-#' @param sv_cm starting values for conditional mean model parameters.
-#' @param sv_cv_u starting values for conditional variance of the inefficiency term model parameters.
-#' @param sv_cv_v starting values for conditional variance of the symmetric term model parameters.
+#' @param sv list. starting values for:
+#' \itemize{
+#' \item f -- frontier model parameters,
+#' \item cm starting values for conditional mean model parameters.
+#' \item cv_u starting values for conditional variance of the inefficiency term model parameters.
+#' \item cv_v starting values for conditional variance of the symmetric term model parameters.
+#' }
 #' @param ll allows custom log-likelihood function that will be MINIMIZED.
 #' @param opt_method optimization method.
 #' @param opt_control list of options for optimization routine.
@@ -48,12 +54,10 @@
 #' \item data -- list of all data used for estimation (including unit vectors as intercepts if appropriate)
 #' \item call is list of \itemize{
 #'    \item intercept
-#'    \item intercept_cm
-#'    \item intercept_cv_u
-#'    \item intercept_cv_v
 #'    \item dist
 #'    \item spec
 #'    \item structure
+#'    \item sv
 #' }
 #' \item loglik -- log-likehood
 #' \item hessian -- hessian matrix

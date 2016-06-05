@@ -4,42 +4,44 @@
 \alias{sfa.fit}
 \title{sfa.fit}
 \usage{
-sfa.fit(y, X, CM = NULL, CV = NULL, K = NULL, ineff = -1,
-  structure = "cs", dist = "tnorm", spec = NULL, intercept = TRUE,
-  intercept_CM = TRUE, intercept_CV = TRUE, sv_f = NULL, sv_cm = NULL,
-  sv_cv = NULL, ll = NULL, opt_method = "SANN", opt_control = NULL,
-  deb = F, debll = F)
+sfa.fit(y, X, CM = NULL, CV_u = NULL, CV_v = NULL, ineff = -1L,
+  dist = c("tnorm", "hnorm", "exp"), spec = NULL, intercept = list(f =
+  TRUE, cm = TRUE, cv_u = TRUE, cv_v = TRUE), sv = list(f = NULL, cm = NULL,
+  cv_u = NULL, cv_v = NULL), ll = NULL, opt_method = "SANN",
+  opt_control = NULL, deb = F, debll = F)
 }
 \arguments{
 \item{y}{dependent (production/cost) variable.}
 
 \item{X}{variables of the production/cost function.}
 
-\item{CM}{data for exogneous determinants of the conditional mean inefficiency.}
+\item{CM}{data for conditional mean model of the inefficiency (asymmetric error) term.}
 
-\item{CV}{data for exogneous determinants of the conditional variance of inefficiency term.}
+\item{CV_u}{data for conditional variance model of the inefficiency (asymmetric error) term.}
 
-\item{K}{matrix of panel data indeces.}
+\item{CV_v}{data for conditional variance model of the symmetric error term.}
 
 \item{ineff}{-1 (or 1) for production (or cost) function, where inefficiency decreases (or increases) the total output (or costs).}
-
-\item{structure}{"cs" for cross-section or "panel" for panel data model. (not functional yet)}
 
 \item{dist}{distribution of inefficiency term ("hnorm", "exp", "tnorm").}
 
 \item{spec}{specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).}
 
-\item{intercept}{TRUE/FALSE if the intercept term should be added to the main formula.}
+\item{intercept}{list of logical values:
+\itemize{
+\item f -- TRUE if the intercept term should be added to the main formula.
+\item cm -- TRUE if the intercept should be added to the conditional mean equation for the asymmetric term
+\item cv_u -- TRUE if the intercept should be added to the conditional inefficiency variance formula.
+\item cv_v -- TRUE if the intercept should be added to the conditional inefficiency variance formula.
+}}
 
-\item{intercept_CM}{TRUE/FALSE if the intercept should be added to the conditional mean inefficiency formula.}
-
-\item{intercept_CV}{TRUE/FALSE if the intercept should be added to the conditional inefficiency variance formula. (not functional yet)}
-
-\item{sv_f}{starting values for frontier model parameters.}
-
-\item{sv_cm}{starting values for conditional mean model parameters. (not functional yet)}
-
-\item{sv_cv}{starting values for conditional variance model parameters. (not functional yet)}
+\item{sv}{list. starting values for:
+\itemize{
+\item f -- frontier model parameters,
+\item cm starting values for conditional mean model parameters.
+\item cv_u starting values for conditional variance of the inefficiency term model parameters.
+\item cv_v starting values for conditional variance of the symmetric term model parameters.
+}}
 
 \item{ll}{allows custom log-likelihood function that will be MINIMIZED.}
 
@@ -48,12 +50,16 @@ sfa.fit(y, X, CM = NULL, CV = NULL, K = NULL, ineff = -1,
 \item{opt_control}{list of options for optimization routine.}
 
 \item{deb}{debug mode (TRUE/FALSE).}
+
+\item{debll}{debug mode of log likelihood functions (TRUE/FALSE).}
 }
 \value{
 Returns object of the class SFA which is a list object consisting:
 \itemize{
 \item coeff -- coefficients for stochastic frontier model
-\item cm_coeff -- coefficients for conditional mean inefficiency model
+\item coeff_cm -- coefficients for conditional mean of the inefficiency term model
+\item coeff_cv_u -- coefficients for conditional variance of the inefficiency term model (heteroskedasticity in the inefficiency)
+\item coeff_cv_v -- coefficients for conditional variance of the symmetric error term model (heteroskedasticity in the frontier model error)
 \item residuals -- total residuals (= both u + v terms)
 \item parameters -- vector of all parameters returend from miximization of log-likelihood
 \item N -- total number of observations
@@ -62,10 +68,10 @@ Returns object of the class SFA which is a list object consisting:
 \item data -- list of all data used for estimation (including unit vectors as intercepts if appropriate)
 \item call is list of \itemize{
    \item intercept
-   \item intercept_CM
    \item dist
    \item spec
    \item structure
+   \item sv
 }
 \item loglik -- log-likehood
 \item hessian -- hessian matrix

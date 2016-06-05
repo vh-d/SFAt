@@ -26,7 +26,7 @@ Lets generate some randomly simulated production data,
 data_ex1 <- as.data.frame(sim_data_cs(1000, 
                                       x_coeff = c(50, 4, 2), 
                                       z_coeff = c(20), 
-                                      sigma_u = 20, sigma_v = 5))
+                                      sigma_u = 10, sigma_v = 5))
 
 ```
 
@@ -50,8 +50,8 @@ model_ex1 <- sfa.fit(y = data_ex1$y,
                      X = cbind(a = data_ex1$x1, b = data_ex1$x2),
                      CM = NULL,   
                      dist = "tnorm",
-                     spec = "bc95_cv",
-                     opt_control = list(temp = 1, maxit = 5e4)
+                     spec = "bc95",
+                     opt_control = list(temp = 1, maxit = 6e4)
                      # deb = T, debll = T
 )
 
