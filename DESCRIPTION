@@ -10,7 +10,8 @@ LazyData: TRUE
 RoxygenNote: 5.0.1
 Imports:
   Rcpp (>= 0.12.5),
-  lmtest
+  lmtest,
+  plm
 Suggests:
   knitr,
   data.table,
