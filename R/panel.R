@@ -5,7 +5,7 @@ panel.sfa.fit <- function(y,
                           # CV_v = NULL,
                           K = NULL,
                           ineff = -1L,
-                          spec = c("CSS"),
+                          spec = c("css90"),
                           # intercept = list(f = TRUE,
                           #                  cm = TRUE,
                           #                  cv_u = TRUE,
@@ -18,8 +18,24 @@ panel.sfa.fit <- function(y,
                           # opt_method = "SANN",
                           # opt_control = NULL,
                           deb = F, # TRUE for debug reports
-                          debll = F
-) {
+                          debll = F) {
 
+  result <- do.call(
+    paste0("fit_", spec, "_model"),
+    args = list(y = y,
+                X = X,
+                K = K,
+                ineff = ineff)
+  )
+
+  result$data <- list(y = y,
+                      X = X,
+                      K = K)
+
+  result$ineff = ineff
+
+  class(result) <- "psfa"
+
+  return(result)
 }
 
