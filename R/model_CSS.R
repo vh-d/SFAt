@@ -5,76 +5,85 @@
 #' 1. regress residuals on time polynomial
 #' 1. predict \alpha_{it}
 #' 1. compute inefficiency as a difference between max(\alpha_{i}) - \alpha_{it}
-fit_css_model <- function(y,
+fit_css90_model <- function(y,
                           X,
                           K,
                           ineff,
                           deb = T) {
-  require(plm)
+  require(plm) #this dependence may be removed in the future
 
   formula_frontier <- as.formula(
     paste0(c("y ~ ",
-             paste0(colnames(pdata$X), collapse = " + "),
+             paste0(colnames(X), collapse = " + "),
              " - 1"),
            collapse = ""))
+  if (deb) print(formula_frontier)
 
-  dataframe <- pdata.frame(data.frame(K, y, X), index = c("k", "t"))
+  dataframe <- pdata.frame(data.frame(K, y, X), index = colnames(K))
 
   if (deb) print(head(dataframe))
 
+  # step 1: fit the panel data using within estimator
   step1fit <- plm(formula_frontier, data = dataframe, model = "within")
   alpha_0 <- fixef(step1fit)
 
   if (deb) {
     print(summary(step1fit))
+
+    cat("Fixed effects:", "\n")
     print(alpha_0)
+    cat("\n")
   }
 
+  # step 2: regress residuals againts time polynomial
   step2fit <- lm(formula = res ~ as.factor(k):t + as.factor(k):I(t^2),
                  data    = data.frame(res = step1fit$residuals,
-                                         pdata$K))
+                                      K))
 
   if (deb) {
     print(summary(step2fit))
   }
 
   result <- list(
+    model = "css90",
     fe = alpha_0,
     tvar = step2fit$coefficients,
     step1fit = step1fit,
     step2fit = step2fit
   )
 
-  # lmfit <- summary(lmfit)
-
   return(result)
 }
 
-uit_css <- function(x) {
-  predict(x$step2fit) + rep(x$fe, 10)
+# fit inefficiency (u term) for CSS 1990 model
+predict_uit_css90 <- function(x) {
+  predict(x$step2fit) + x$fe[attr(x$step1fit$model, "index")$k]
 }
 
-# require(SFAt)
-# require(data.table)
-# require(ggplot2)
-# pdata <- sim_data_panel(z_mean = 10:30, sigma_u = 1, sigma_v =1, z_coeff = 0, aslist = T)
-# temp <- fit_css_model(pdata$y, X = pdata$X, K = pdata$K, ineff = -1)
-# plot(temp$fe)
-#
-# uit <- data.table(pdata$K, uit = uit_css(temp))
-# uit[, ui := max(uit), by = t]
-# uit[, ineff := ui - uit]
-# # ui <- aggregate(x = uit$uit, by = list(uit$t), FUN = max)
-# # ineff <- rep(ui$x, times = 20) - uit$uit
-# # hist(ineff)
-#
-# ggplot(uit,
-#       aes(x = t,
-#           y = ineff,
-#           color = factor(k))) +
-#   geom_line()
-#
-# ggplot(uit,
-#        aes(x = ineff)) +
-#   geom_histogram()
-#
+# summary statistics for CSS 1990
+summary_css90 <- function(x) {
+  require(data.table)
+
+  u_it <- data.table(x$data$K,
+                     y = x$data$y,
+                     x$data$X,
+                     uit = predict_uit_css90(x))
+
+  u_it[, ui := max(uit), by = t]
+  u_it[, ineff := ui - uit]
+
+  mean_u <- mean(u_it$ineff)
+  sigma_u <- sd(u_it$ineff)
+
+  sigma_v <- sd(x$step1fit$residuals)
+
+  ans <- list(
+    data = u_it,
+    sigma_u = sigma_u,
+    sigma_v = sigma_v,
+    u = u_it$ineff)
+
+  return(ans)
+}
+
+
