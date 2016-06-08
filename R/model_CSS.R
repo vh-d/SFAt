@@ -10,40 +10,53 @@ fit_css90_model <- function(y,
                           K,
                           ineff,
                           deb = T) {
+
+  # ---- step 1: ----
   require(plm) #this dependence may be removed in the future
 
+    # construct formula for step 1 regression
   formula_frontier <- as.formula(
     paste0(c("y ~ ",
              paste0(colnames(X), collapse = " + "),
              " - 1"),
            collapse = ""))
+
   if (deb) print(formula_frontier)
 
   dataframe <- pdata.frame(data.frame(K, y, X), index = colnames(K))
 
   if (deb) print(head(dataframe))
 
-  # step 1: fit the panel data using within estimator
-  step1fit <- plm(formula_frontier, data = dataframe, model = "within")
+  #  fit the panel data using within estimator
+  step1fit <- plm(formula_frontier,
+                  data = dataframe,
+                  model = "within")
+
   alpha_0 <- fixef(step1fit)
 
   if (deb) {
+    cat("======== Step 1 regression: =======", "\n")
     print(summary(step1fit))
+    cat("\n")
 
-    cat("Fixed effects:", "\n")
+    cat("======== Fixed effects: =======", "\n")
     print(alpha_0)
     cat("\n")
   }
 
-  # step 2: regress residuals againts time polynomial
+  # ---- step 2: ----
+  # regress residuals againts time polynomial
   step2fit <- lm(formula = res ~ as.factor(k):t + as.factor(k):I(t^2),
                  data    = data.frame(res = step1fit$residuals,
                                       K))
 
   if (deb) {
+    cat("======== Step 2 regression: =======", "\n")
     print(summary(step2fit))
+    cat("\n")
   }
 
+  # ---- return ----
   result <- list(
     model = "css90",
     fe = alpha_0,
