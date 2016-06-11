@@ -15,8 +15,6 @@ sim_data_cs <- function(N = 500,
                      ineff = -1,
                      aslist = F) {
 
-  require(msm)
-
   x_ncols <- length(x_coeff) - 1
   z_ncols <- length(z_coeff) - 1
 
@@ -38,10 +36,14 @@ sim_data_cs <- function(N = 500,
 
     colnames(Z) <- paste0("z", 1:z_ncols)
 
-    u <- rtnorm(N,
-                mean = as.vector(cbind(1,  Z) %*% z_coeff),
-                lower = 0,
-                sd = sigma_u)
+    u <- sapply(as.vector(cbind(1,  Z) %*% z_coeff),
+                function(x) {
+                  rtnorm(1,
+                         mean = x,
+                         lower = 0,
+                         sd = sigma_u)
+                  }
+                )
   } else {
 
     u <- rtnorm(N,
@@ -122,10 +124,15 @@ sim_data_panel <- function(k = 20, # number of individuals - cross section
 
     colnames(Z) <- paste0("z", 1:z_ncols)
 
-    u <- rtnorm(N,
-                mean = mu + as.vector(Z %*% z_coeff),
-                lower = 0,
-                sd = sigma_u)
+    u <- sapply(mu + as.vector(as.vector(Z %*% z_coeff)),
+                function(x) {
+                  rtnorm(1,
+                         mean = x,
+                         lower = 0,
+                         sd = sigma_u)
+                }
+    )
+
   } else {
 
     u <- rtnorm(N,
@@ -167,4 +174,10 @@ sim_data_cs_homo <- function(N, ineff = -1) {
   y <- 10 + 6*x1 + 3*x2 + eps
 
   return(cbind(y, x1, x2, z1, z2, u, v, eps))
+}
+
+#' draw random values from truncated normal distribution
+#' @export
+rtnorm <- function(n = 1, mean = 0, sd = 1, lower = -Inf, upper = Inf) {
+  rtnorm_(n, mean, sd, lower, upper)
 }

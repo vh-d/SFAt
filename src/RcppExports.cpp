@@ -24,3 +24,18 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// rtnorm_
+NumericVector rtnorm_(int n, double mean, double sd, double lower, double upper);
+RcppExport SEXP SFAt_rtnorm_(SEXP nSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type mean(meanSEXP);
+    Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
+    Rcpp::traits::input_parameter< double >::type lower(lowerSEXP);
+    Rcpp::traits::input_parameter< double >::type upper(upperSEXP);
+    __result = Rcpp::wrap(rtnorm_(n, mean, sd, lower, upper));
+    return __result;
+END_RCPP
+}

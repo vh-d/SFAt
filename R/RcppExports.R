@@ -5,3 +5,7 @@ ll_cs_exp_cpp <- function(pars, indeces, y, X, CV_u, CV_v, CM, ineff, deb) {
     .Call('SFAt_ll_cs_exp_cpp', PACKAGE = 'SFAt', pars, indeces, y, X, CV_u, CV_v, CM, ineff, deb)
 }
 
+rtnorm_ <- function(n, mean, sd, lower, upper) {
+    .Call('SFAt_rtnorm_', PACKAGE = 'SFAt', n, mean, sd, lower, upper)
+}
+
