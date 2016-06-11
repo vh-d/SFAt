@@ -6,17 +6,21 @@
 using namespace Rcpp;
 
 // ll_cs_exp_cpp
-double ll_cs_exp_cpp(const SEXP params, const SEXP y, const SEXP X, const int ineff, const bool deb);
-RcppExport SEXP SFAt_ll_cs_exp_cpp(SEXP paramsSEXP, SEXP ySEXP, SEXP XSEXP, SEXP ineffSEXP, SEXP debSEXP) {
+double ll_cs_exp_cpp(const NumericVector& pars, const IntegerVector& indeces, const NumericVector& y, const NumericMatrix& X, const SEXP& CV_u, const SEXP& CV_v, const SEXP& CM, const int ineff, const bool deb);
+RcppExport SEXP SFAt_ll_cs_exp_cpp(SEXP parsSEXP, SEXP indecesSEXP, SEXP ySEXP, SEXP XSEXP, SEXP CV_uSEXP, SEXP CV_vSEXP, SEXP CMSEXP, SEXP ineffSEXP, SEXP debSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const SEXP >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const SEXP >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const SEXP >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type pars(parsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type indeces(indecesSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type CV_u(CV_uSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type CV_v(CV_vSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type CM(CMSEXP);
     Rcpp::traits::input_parameter< const int >::type ineff(ineffSEXP);
     Rcpp::traits::input_parameter< const bool >::type deb(debSEXP);
-    __result = Rcpp::wrap(ll_cs_exp_cpp(params, y, X, ineff, deb));
+    __result = Rcpp::wrap(ll_cs_exp_cpp(pars, indeces, y, X, CV_u, CV_v, CM, ineff, deb));
     return __result;
 END_RCPP
 }

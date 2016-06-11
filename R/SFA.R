@@ -142,13 +142,13 @@ sfa.fit <- function(y,
       warning("Either intercept$cv has to be set TRUE or CV_u has to be provided. Overriding intercept$cv = TRUE ...")
       intercept$cv_u = T
     }
-    CV_u <- c("lnsigma2_u" = 1)
+    CV_u <- c("lnsigma2_u" = 1.0)
     cv_u_model <- F
     coeff_cv_u_num <- 1
     coeff_cv_u_names <- "lnsigma2_u"
   } else {
     if (intercept$cv_u) {
-      CV_u <- cbind(sigma_u_0 = 1, CV_u)
+      CV_u <- cbind(sigma_u_0 = 1.0, CV_u)
     }
     cv_u_model <- T
     coeff_cv_u_num <- ncol(CV_u) # number of coefficients
@@ -161,13 +161,13 @@ sfa.fit <- function(y,
       warning("Either intercept$cv has to be set TRUE or CV_v has to be provided. Overriding intercept$cv = TRUE ...")
       intercept$cv_v = T
     }
-    CV_v <- c("lnsigma2_v" = 1)
+    CV_v <- c("lnsigma2_v" = 1.0)
     cv_v_model <- F
     coeff_cv_v_num <- 1
     coeff_cv_v_names <- "lnsigma2_v"
   } else {
     if (intercept$cv_v) {
-      CV_v <- cbind(sigma_v_0 = 1, CV_v)
+      CV_v <- cbind(sigma_v_0 = 1.0, CV_v)
     }
     cv_v_model <- T
     coeff_cv_v_num <- ncol(CV_v) # number of coefficients
@@ -239,7 +239,7 @@ sfa.fit <- function(y,
            model_parameters)
 
   if (deb) cat("Starting values: ",
-               sv)
+               svv)
 
   if (is.null(ll)) {
     ll_fn_call <- paste0("ll", "_", model_spec)
@@ -267,9 +267,9 @@ sfa.fit <- function(y,
                         indeces = indeces,
                         y = y,
                         X = X,
-                        CM = CM,
                         CV_u = CV_u,
-                        CV_v = CV_v))
+                        CV_v = CV_v,
+                        CM = CM))
   if (deb & parcheck) cat("Parameters check OK.", "\n")
 
 

@@ -43,7 +43,7 @@ ll_cs_exp <- function(params,
                       deb) {
 
   if (deb) {
-    cat("Parameters: ", params)
+    cat("Parameters: ", params, "\n")
   }
 
   f_coeff    <- params[              1 :indeces[1]]
@@ -58,18 +58,16 @@ ll_cs_exp <- function(params,
 
   if (deb) cat("Total of ", length(params), " parameters: \n",
                "Betas: ", paste(f_coeff), "\n",
-               "Sigma_u: ", sigma_u,
-               "Sigma_v: ", sigma_v, "\n")
+               "Sigma_u: ", cv_u_coeff, "\n",
+               "Sigma_v: ", cv_v_coeff, "\n")
 
   epsilon <- as.vector(-ineff * (y - X %*% f_coeff))
 
   N <- length(y)
 
-  ll <-
-    - N * log(sigma_u) +
-    sum(0.5 * sigma2_v / sigma2_u +
-          log(pnorm(-(epsilon + (sigma2_v / sigma_u)) / sigma_v)) +
-          epsilon / sigma_u)
+  ll <- sum(-log(sigma_u) + 0.5 * sigma2_v / sigma2_u +
+              log(pnorm(-(epsilon + (sigma2_v / sigma_u)) / sigma_v)) +
+              epsilon / sigma_u)
 
   return(-ll)
 }
