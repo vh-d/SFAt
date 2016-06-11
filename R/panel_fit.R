@@ -1,3 +1,12 @@
+#' fit SFA models on panel data
+#' @param y - dependent variable (typically log of total product or cost)
+#' @param X - explanatory variables (typically log of inputs or translog form)
+#' @param K - matrix of panel data indeces
+#' @param ineff - -1L/1L for production/cost inefficiency
+#' @param spec - panel data model specification (currently only CSS, 1990)
+#' @param deb - debug option
+#' @param debll - debug option for log-likelohood functions
+#' @export
 panel.sfa.fit <- function(y,
                           X,
                           # CM = NULL,

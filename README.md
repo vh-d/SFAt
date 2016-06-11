@@ -16,6 +16,20 @@ The package is not on CRAN yet. Install it from its GitHub repo.
 library(devtools)
 install_github("vh-d/SFAt")
 ```
+Features
+--------
+
+**cross-section models**
+- distributions: 
+  - normal/half-normal
+  - normal/truncated normal
+  - normal/exponential
+- homoskedasticity and heteroskedasticity for both symmetric and inefficiency terms
+- conditional mean (BC, 1995) model
+
+**panel data models**
+- panel data conditional mean (BC, 1995) model can be estimated via cross-section model specification
+- CSS, 1990 model
 
 Known issues
 -----------
@@ -35,7 +49,7 @@ To-do:
 - robust standard errors
 - SFA() funtion with Formula interface 
 - add tests
-- rewrite likelihood functions in C++ (using Rcpp) 
+- rewrite likelihood functions in C++ (using Rcpp), altough the speed increase is small based on first experiments
 - explore `nloptr`, `ucminf` and `maxLik` packages for MLE optimizations  
 
 Contributions and suggestions are welcome!
