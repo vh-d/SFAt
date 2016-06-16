@@ -137,16 +137,18 @@ hist(ex2_efficiencies)
 ```
 
 
+```{r formula method}
 
-<!-- ## OLS model -->
+model_ex2 <- SFA(y ~ x1 + x2,
+                 data = data_ex1,
+                 dist = "tnorm",
+                 spec = "bc95",
+                 opt_control = list(temp = 1, maxit = 6e3, trace = 1),
+                 # deb = T, debll = T
+)
 
-<!-- We might be interested in simple OLS model for skew test / LR test (and starting values of parameters). -->
+print(summary(model_ex2))
+print(lrtest(model_ex2))
 
-<!-- ```{r} -->
-
-<!-- lmfit <- lm(y ~ x1 + x2 + I(-z1) + I(-z2), data = data_ex2_cm) -->
-<!-- summary(lmfit) -->
-
-<!-- ``` -->
-
+```
 

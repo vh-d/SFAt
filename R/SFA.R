@@ -66,6 +66,7 @@
 #' @examples
 #' See vignettes.
 #'
+#' @rdname SFA
 #' @export
 sfa.fit <- function(y,
                     X,
@@ -82,9 +83,9 @@ sfa.fit <- function(y,
                                      cv_u = TRUE,
                                      cv_v = TRUE),
                     sv = list(f = NULL,
-                               cm = NULL,
-                               cv_u = NULL,
-                               cv_v = NULL),
+                              cm = NULL,
+                              cv_u = NULL,
+                              cv_v = NULL),
                     ll = NULL,
                     opt_method = "SANN",
                     opt_control = NULL,
@@ -210,8 +211,8 @@ sfa.fit <- function(y,
   if (deb) print(summary(lmfit))
 
   if (is.null(sv$f)) {
-      sv$f <- lmfit$coefficients
-      names(sv$f)[1:length(fcoeff_names)] <- fcoeff_names
+    sv$f <- lmfit$coefficients
+    names(sv$f)[1:length(fcoeff_names)] <- fcoeff_names
   } # to-do: else check length
 
   if (dist == "tnorm") {
@@ -296,7 +297,7 @@ sfa.fit <- function(y,
   coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
   coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
   coeff_cm <-  if (dist == "tnorm")
-                    est$par[(1 + indeces[3]) : (indeces[4])]
+    est$par[(1 + indeces[3]) : (indeces[4])]
 
   result <- list(coeff_frontier = coeff_frontier,
                  cm_model       = cm_model,
@@ -335,57 +336,71 @@ sfa.fit <- function(y,
 
 # FORMULA FUNCTION --------------------------------------------------------
 
-# stochastic frontier analysis
-# this formula interface is not ready yet
-# do not export
-SFA <- function(formula,
-                data = NULL,
-                intercept = list(f = TRUE,
-                                 cm = TRUE,
-                                 cv_u = TRUE,
-                                 cv_v = TRUE),
-                dist = "hnorm",
-                sv_f = NULL,
-                par_mu = NULL,
-                ineff = -1,
-                opt_method = "BFGS", ...){
+#' stochastic frontier analysis
+#' formula interface (experimental)
+#' @rdname SFA
+#' @export
+SFA.formula <- function(formula,
+                        data = NULL,
+                        cm = ~1,
+                        cv_u = ~1,
+                        cv_v = ~1,
+                        ...){
 
-  formula_ext <- Formula(formula)
-  formula_length <- length(formula_ext)
+  fMat <- model.matrix(formula,
+                       data = data)
 
-
-  y <- as.vector(
-    model.frame(
-      formula(formula_ext,
-              lhs = 1, rhs = 0)))
-
-  X <- as.matrix(
-    model.frame(
-      formula(formula_ext,
-              lhs = 0, rhs = 1)))
-
-  # exogenous variables
-  if (formula_length[2] > 1) {
-    CM <- as.matrix(
-      model.frame(
-        formula(formula_ext,
-                lhs = 0, rhs = 2)))
-  } else {
-    CM = NULL
+  if (!is.null(cm) & class(cm) == "formula") {
+    cmMat <- model.matrix(cm,
+                          data = data)
   }
 
-  sfa.fit(y = y,
-          X = X,
-          CM = CM,
-          intercept = intercept,
-          dist = dist,
-          model = model,
-          sv = list(f = sv_f),
-          form = form,
-          method = method,
+  if (!is.null(cv_u) & class(cv_u) == "formula") {
+    cvuMat <- model.matrix(cv_u,
+                           data = data)
+  }
+
+  if (!is.null(cv_v) & class(cv_v) == "formula") {
+    cvvMat <- model.matrix(cv_v,
+                           data = data)
+  }
+
+  print(head(fMat))
+  print(head(cmMat))
+  print(head(cvuMat))
+  print(head(cvvMat))
+
+  sfa.fit(y = fMat[, 1],
+          X = fMat[, -1],
+          CM = cmMat,
+          CV_u = cvuMat,
+          CV_v = cvvMat,
+          intercept = list(f = F, cm = F, cv_u = F, cv_v = F),
+          # intercept = list(f = attr(terms(formula), "intercept"),
+          #                  cm = attr(terms(cm), "intercept"),
+          #                  cv_u = attr(terms(cv_u), "intercept"),
+          #                  cv_v = attr(terms(cv_v), "intercept")),
           ...)
 }
 
+#' list of formulas method
+#' @rdname SFA
+#' @export
+SFA.list <- function(formulas,
+                     data = NULL,
+                     ...) {
+  if (length(names(formulas)) != length(formulas))
+    names(formulas) <- c("f", "cm", "cv_u", "cv_v")[1:length(formulas)]
+
+  do.call(SFA.formula, args = list(formulas, data = data, ...))
+}
+
+
+#' @rdname SFA
+#' @export
+SFA <- function(object, ...) {
+  UseMethod("SFA")
+}
 
 # SUMMARY FUNCTION --------------------------------------------------------
 #' test statistics for SFA model
@@ -417,7 +432,7 @@ summary.SFA <- function(object) {
   coeff_cv_u_table <- coef_table[(indeces[1] + 1) : indeces[2], , drop = F]
   coeff_cv_v_table <- coef_table[(indeces[2] + 1) : indeces[3], , drop = F]
   coeff_cm_table   <- if (!is.null(object$coeff_cm))
-                      coef_table[(indeces[3] + 1) : indeces[4], , drop = F] else NULL
+    coef_table[(indeces[3] + 1) : indeces[4], , drop = F] else NULL
 
   ans <- list(call = object$call,
               N = object$N,
