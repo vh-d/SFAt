@@ -14,12 +14,8 @@ Imports:
   plm
 Suggests:
   knitr,
-  data.table,
-  GGally,
   ggplot2,
-  sfa,
   frontier,
-  Benchmarking
 VignetteBuilder:
   knitr
 LinkingTo:

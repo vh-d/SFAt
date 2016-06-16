@@ -12,7 +12,7 @@ vignette: >
 ```{r Init}
 require(SFAt)
 # require(msm) # package for drawing from truncated-normal distribution
-require(data.table) # for more convenient data manipulation
+# require(data.table) # for more convenient data manipulation
 ```
 
 ### Example dataset
@@ -21,7 +21,7 @@ Lets generate some randomly simulated production data...
 
 ```{r Simulate data}
 
-dtDT <- as.data.table(sim_data_cs(500))
+EX1 <- as.data.frame(sim_data_cs(500))
 
 ```
 
@@ -31,13 +31,13 @@ and explore the production data and simulated inefficiency term.
 # require(GGally)
 # ggpairs(dtDT)
 
-plot(dtDT)
+plot(EX1)
 ```
 
 ```{r Plot individual variables}
-hist(dtDT$y)
-hist(dtDT$u)
-hist(dtDT$eps)
+hist(EX1$y)
+hist(EX1$u)
+hist(EX1$eps)
 
 ```
 
@@ -47,7 +47,7 @@ We might be interested in simple OLS model for LR test (and starting values of p
 
 ```{r OSL model}
 
-lmfit <- lm(y ~ x1 + x2 + z1 + z2, data = dtDT)
+lmfit <- lm(y ~ x1 + x2 + z1 + z2, data = EX1)
 summary(lmfit)
 
 ```
@@ -55,29 +55,16 @@ summary(lmfit)
 ## SFA model
 
 ```{r SFAt model}
-sfat <- SFAt::sfa.fit(y = dtDT$y,
-                     X = as.matrix(dtDT[, .(x1, x2)]),
-                     CM = as.matrix(dtDT[, .(z1, z2)]),
+sfat <- SFAt::sfa.fit(y = EX1$y,
+                     X = as.matrix(EX1[, c("x1", "x2")]),
+                     CM = as.matrix(EX1[, c("z1", "z2")]),
                      spec = "bc95",
                      deb = F,
-                     opt_method = "BFGS"
-                     # control_opt = list(maxit = 300, trace = T)
+                     opt_method = "SANN",
+                     opt_control = list(maxit = 3e4, trace = T)
 )
 summary(sfat)
 ```
-
-
-<!-- ### benchmark with sfa package -->
-
-<!-- ```{r} -->
-<!-- require(sfa) -->
-
-<!-- summary(sfa::sfa(y ~ x1 + x2, -->
-<!--                  data = as.data.frame(data1), -->
-<!--                  fun = "tnormal", -->
-<!--                  form = "production")) -->
-
-<!-- ``` -->
 
 
 ### benchmark with frontier package methods
@@ -86,11 +73,9 @@ summary(sfat)
 require(frontier)
 
 frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
-                          data = dtDT,
+                          data = EX1,
                           ineffDecrease = T,
-                          truncNorm = T,
-                          muBound = 0,
-                          maxit = 100)
+                          truncNorm = T)
 
 print(summary(frontest))
 print(lrtest(frontest))
@@ -103,11 +88,13 @@ print(lrtest(frontest))
 data("front41Data")
 
 sfa2 <- SFAt::sfa.fit(y = log(front41Data$output), 
-                         X = cbind(capital = log(front41Data$capital), 
-                                   labour = log(front41Data$labour)), 
-                         dist = "tnorm",
-                         spec = NULL,
-                         deb = F)
+                      X = cbind(capital = log(front41Data$capital), 
+                                labour = log(front41Data$labour)), 
+                      dist = "tnorm",
+                      spec = "bc95",
+                      opt_method = "BFGS",
+                      opt_control = list(trace = T),
+                      deb = F)
 
 print(summary(sfa2))
 ```
