@@ -109,14 +109,13 @@ sfa.fit <- function(y,
   # ---- INIT ----
 
   # frontier model
-  fcoeff_num <- ncol(X) # number of coefficients
-  fcoeff_names <- colnames(X)
 
   if (intercept$f) {
-    fcoeff_num <- fcoeff_num + 1
-    X <- cbind(1, X)
-    fcoeff_names <- c("intercept", fcoeff_names)
+    X <- cbind("(Intercept)" = 1, X)
+    # fcoeff_names <- c("(Intercept)", fcoeff_names)
   }
+  fcoeff_names <- colnames(X)
+  fcoeff_num <- ncol(X) # number of coefficients
 
   # inefficiency - (un)conditional mean for t-norm distribution
   if (is.null(CM)) {
@@ -130,7 +129,7 @@ sfa.fit <- function(y,
   } else {
     if (dist != "tnorm") stop("Conditional mean of inefficiency term model only possible for normal/t-normal model. ")
     if (intercept$cm) {
-      CM <- cbind(mu_0 = 1, CM)
+      CM <- cbind("(Intercept)" = 1.0, CM)
     }
     cm_model <- T
     coeff_cm_num <- ncol(CM) # number of coefficients
@@ -143,13 +142,13 @@ sfa.fit <- function(y,
       warning("Either intercept$cv has to be set TRUE or CV_u has to be provided. Overriding intercept$cv = TRUE ...")
       intercept$cv_u = T
     }
-    CV_u <- c("lnsigma2_u" = 1.0)
+    CV_u <- c("(Intercept)" = 1.0)
     cv_u_model <- F
     coeff_cv_u_num <- 1
-    coeff_cv_u_names <- "lnsigma2_u"
+    coeff_cv_u_names <- "(Intercept)"
   } else {
     if (intercept$cv_u) {
-      CV_u <- cbind(sigma_u_0 = 1.0, CV_u)
+      CV_u <- cbind("(Intercept)" = 1.0, CV_u)
     }
     cv_u_model <- T
     coeff_cv_u_num <- ncol(CV_u) # number of coefficients
@@ -162,13 +161,13 @@ sfa.fit <- function(y,
       warning("Either intercept$cv has to be set TRUE or CV_v has to be provided. Overriding intercept$cv = TRUE ...")
       intercept$cv_v = T
     }
-    CV_v <- c("lnsigma2_v" = 1.0)
+    CV_v <- c("(Intercept)" = 1.0)
     cv_v_model <- F
     coeff_cv_v_num <- 1
-    coeff_cv_v_names <- "lnsigma2_v"
+    coeff_cv_v_names <- "(Intercept)"
   } else {
     if (intercept$cv_v) {
-      CV_v <- cbind(sigma_v_0 = 1.0, CV_v)
+      CV_v <- cbind(intercept = 1.0, CV_v)
     }
     cv_v_model <- T
     coeff_cv_v_num <- ncol(CV_v) # number of coefficients
@@ -185,7 +184,7 @@ sfa.fit <- function(y,
   # }
 
   if (deb) {
-    cat(ifelse(intercept == T,
+    cat(ifelse(intercept$f == T,
                "X",
                "no X"), " intercept, ", "\n",
         fcoeff_num,     " X coefficient parameters, ", "\n",
@@ -345,37 +344,29 @@ SFA.formula <- function(formula,
                         cm = ~1,
                         cv_u = ~1,
                         cv_v = ~1,
+                        deb = FALSE,
                         ...){
 
-  fMat <- model.matrix(formula,
-                       data = data)
+  # extract the response variable
+  y <- data[, all.vars(formula)[1]]
 
-  if (!is.null(cm) & class(cm) == "formula") {
-    cmMat <- model.matrix(cm,
-                          data = data)
+  # extract the explanatory variables
+  fMat <- model.matrix(formula, data = data)
+  if (!is.null(cm)   & class(cm)   == "formula") {cmMat  <- model.matrix(cm,   data = data)}
+  if (!is.null(cv_u) & class(cv_u) == "formula") {cvuMat <- model.matrix(cv_u, data = data)}
+  if (!is.null(cv_v) & class(cv_v) == "formula") {cvvMat <- model.matrix(cv_v, data = data)}
+
+  if (deb) {
+    print(head(fMat)); print(head(cmMat)); print(head(cvuMat)); print(head(cvvMat))
   }
 
-  if (!is.null(cv_u) & class(cv_u) == "formula") {
-    cvuMat <- model.matrix(cv_u,
-                           data = data)
-  }
-
-  if (!is.null(cv_v) & class(cv_v) == "formula") {
-    cvvMat <- model.matrix(cv_v,
-                           data = data)
-  }
-
-  print(head(fMat))
-  print(head(cmMat))
-  print(head(cvuMat))
-  print(head(cvvMat))
-
-  sfa.fit(y = fMat[, 1],
-          X = fMat[, -1],
+  sfa.fit(y = y,
+          X = fMat,
           CM = cmMat,
           CV_u = cvuMat,
           CV_v = cvvMat,
           intercept = list(f = F, cm = F, cv_u = F, cv_v = F),
+          deb = deb,
           # intercept = list(f = attr(terms(formula), "intercept"),
           #                  cm = attr(terms(cm), "intercept"),
           #                  cv_u = attr(terms(cv_u), "intercept"),
