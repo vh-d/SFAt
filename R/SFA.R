@@ -429,6 +429,7 @@ summary.SFA <- function(object) {
               N = object$N,
               loglik = object$loglik,
               parameters = object$parameters,
+              coefficients = coef_table,
               coefficients_frontier = coeff_f_table,
               coefficients_cm = coeff_cm_table,
               coefficients_cv_u = coeff_cv_u_table,
@@ -445,41 +446,33 @@ summary.SFA <- function(object) {
 #' @export
 print.summary.SFA <- function(object) {
 
-  col_names <- colnames(object$coefficients_frontier)
+  head_mu   <- matrix(NA, 1, ncol(object$coefficients_frontier))
+  head_cv_u <- head_mu
+  head_cv_v <- head_mu
 
-  separator_head <- t(gsub(".", "=", col_names))
-  separator_mid <- t(gsub(".", "-", col_names))
+  row.names(head_mu)   <- "mu:"
+  row.names(head_cv_u) <- "log(sigma2_u):"
+  row.names(head_cv_v) <- "log(sigma2_v):"
 
-  maxrowname <- max(c(nchar(rownames(object$coefficients_frontier)),
-                      nchar(rownames(object$coefficients_mc)),
-                      nchar(rownames(object$sigmas)),
-                      nchar(rownames(object$sigmas_t))))
+  row.names(object$coefficients_cm)   <- paste("  ", row.names(object$coefficients_cm))
+  row.names(object$coefficients_cv_u) <- paste("  ", row.names(object$coefficients_cv_u))
+  row.names(object$coefficients_cv_v) <- paste("  ", row.names(object$coefficients_cv_v))
 
-  rownames(separator_head) <- paste0(rep("=", maxrowname), collapse = "")
-  rownames(separator_mid) <-  paste0(rep("-", maxrowname), collapse = "")
-
-  outtable <- rbind(separator_head,
-                    round(object$coefficients_frontier, 3),
-                    separator_mid,
+  outtable <- rbind(object$coefficients_frontier,
+                    if (!is.null(object$coefficients_cm)) head_mu else NULL,
                     if (!is.null(object$coefficients_cm)) round(object$coefficients_cm, 3) else NULL,
-                    if (!is.null(object$coefficients_cm)) separator_mid else NULL,
-                    round(object$coefficients_cv_u, 3),
-                    separator_mid,
-                    round(object$coefficients_cv_v, 3),
-                    separator_mid)
+                    head_cv_u,
+                    object$coefficients_cv_u,
+                    head_cv_v,
+                    object$coefficients_cv_v)
 
   cat("Stochastic frontier model",
-      "=========================",
-      sep = "\n")
+      "=========================", sep = "\n")
 
   cat(if (object$call$structure == "panel") "Panel" else "Cross-section", "data.\n")
-  cat("Total observations:", object$N, if (object$call$structure == "panel") "in cross-section." else NULL,
-      "\n")
-
+  cat("Total observations:", object$N, if (object$call$structure == "panel") "in cross-section." else NULL, "\n")
   cat("Log-likelihood:", object$loglik, "\n")
-
   cat("\n", sep = "")
-  print(outtable, quote = F)
-
+  print(outtable, digits = 4, nsmall = 3, na.print = "", quote = F)
   cat("\n", sep = "")
 }
