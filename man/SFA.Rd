@@ -5,7 +5,7 @@
 \alias{SFA.formula}
 \alias{SFA.list}
 \alias{sfa.fit}
-\title{sfa.fit}
+\title{Fits stochastic frontier analysis (SFA) model}
 \usage{
 sfa.fit(y, X, CM = NULL, CV_u = NULL, CV_v = NULL, ineff = -1L,
   dist = c("tnorm", "hnorm", "exp"), spec = NULL, intercept = list(f =
@@ -14,7 +14,7 @@ sfa.fit(y, X, CM = NULL, CV_u = NULL, CV_v = NULL, ineff = -1L,
   opt_control = NULL, deb = F, debll = F)
 
 \method{SFA}{formula}(formula, data = NULL, cm = ~1, cv_u = ~1,
-  cv_v = ~1, ...)
+  cv_v = ~1, deb = FALSE, ...)
 
 \method{SFA}{list}(formulas, data = NULL, ...)
 
@@ -48,9 +48,9 @@ SFA(object, ...)
 \item{sv}{list. starting values for:
 \itemize{
 \item f -- frontier model parameters,
-\item cm starting values for conditional mean model parameters.
-\item cv_u starting values for conditional variance of the inefficiency term model parameters.
-\item cv_v starting values for conditional variance of the symmetric term model parameters.
+\item cm -- starting values for conditional mean model parameters.
+\item cv_u -- starting values for conditional variance of the inefficiency term model parameters.
+\item cv_v -- starting values for conditional variance of the symmetric term model parameters.
 }}
 
 \item{ll}{allows custom log-likelihood function that will be MINIMIZED.}

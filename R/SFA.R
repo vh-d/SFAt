@@ -1,7 +1,5 @@
 # MAIN FUNCTION -----------------------------------------------------------
 
-#' sfa.fit
-#'
 #' Fits stochastic frontier analysis (SFA) model
 #'
 #' @param y dependent (production/cost) variable.
@@ -22,9 +20,9 @@
 #' @param sv list. starting values for:
 #' \itemize{
 #' \item f -- frontier model parameters,
-#' \item cm starting values for conditional mean model parameters.
-#' \item cv_u starting values for conditional variance of the inefficiency term model parameters.
-#' \item cv_v starting values for conditional variance of the symmetric term model parameters.
+#' \item cm -- starting values for conditional mean model parameters.
+#' \item cv_u -- starting values for conditional variance of the inefficiency term model parameters.
+#' \item cv_v -- starting values for conditional variance of the symmetric term model parameters.
 #' }
 #' @param ll allows custom log-likelihood function that will be MINIMIZED.
 #' @param opt_method optimization method.
@@ -442,7 +440,7 @@ summary.SFA <- function(object) {
 
 #' Print summary for SFA objects.
 #' @param object object of class SFA
-#' @details Prints table of summary statistics for SFA model fitted by \code{SFA.fit} funtion.
+#' @details Prints table of summary statistics for SFA model fitted by \code{sfa.fit} funtion.
 #' @export
 print.summary.SFA <- function(object) {
 

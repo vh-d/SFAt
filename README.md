@@ -47,7 +47,6 @@ To-do:
       - fixed effects in conditional mean equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
       - fixed effects in conditional variance equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
 - robust standard errors
-- SFA() funtion with Formula interface 
 - add tests
 - rewrite likelihood functions in C++ (using Rcpp), altough the speed increase is small based on first experiments
 - explore `nloptr`, `ucminf` and `maxLik` packages for MLE optimizations  
