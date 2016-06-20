@@ -49,6 +49,6 @@ To-do:
 - robust standard errors
 - add tests
 - rewrite likelihood functions in C++ (using Rcpp), altough the speed increase is small based on first experiments
-- explore `nloptr`, `ucminf` and `maxLik` packages for MLE optimizations  
+- explore `nloptr`, and `maxLik` packages for MLE optimizations  
 
 Contributions and suggestions are welcome!
