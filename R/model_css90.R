@@ -1,20 +1,20 @@
 #' Cornwell, Schmidt, and Sickles (1990) model
-#' as is Parmeter & Kumbhakar 2014, pp.78:
-#' 1. use within estimator to fit a fixed effect panel data model
-#' 1. estimate residuals
-#' 1. regress residuals on time polynomial
-#' 1. predict \alpha_{it}
-#' 1. compute inefficiency as a difference between max(\alpha_{i}) - \alpha_{it}
+# as is Parmeter & Kumbhakar 2014, pp.78:
+# 1. use within estimator to fit a fixed effect panel data model
+# 2. estimate residuals
+# 3. regress residuals on time polynomial
+# 4. predict \alpha_{it}
+# 5. compute inefficiency as a difference between max(\alpha_{i}) - \alpha_{it}
 fit_css90_model <- function(y,
-                          X,
-                          K,
-                          ineff,
-                          deb = T) {
+                            X,
+                            K,
+                            ineff,
+                            deb = T) {
 
   # ---- step 1: ----
   require(plm) #this dependence may be removed in the future
 
-    # construct formula for step 1 regression
+  # construct formula for step 1 regression
   formula_frontier <- as.formula(
     paste0(c("y ~ ",
              paste0(colnames(X), collapse = " + "),

@@ -2,23 +2,11 @@
 % Please edit documentation in R/model_css90.R
 \name{fit_css90_model}
 \alias{fit_css90_model}
-\title{Cornwell, Schmidt, and Sickles (1990) model
-as is Parmeter & Kumbhakar 2014, pp.78:
-1. use within estimator to fit a fixed effect panel data model
-1. estimate residuals
-1. regress residuals on time polynomial
-1. predict \alpha_{it}
-1. compute inefficiency as a difference between max(\alpha_{i}) - \alpha_{it}}
+\title{Cornwell, Schmidt, and Sickles (1990) model}
 \usage{
 fit_css90_model(y, X, K, ineff, deb = T)
 }
 \description{
 Cornwell, Schmidt, and Sickles (1990) model
-as is Parmeter & Kumbhakar 2014, pp.78:
-1. use within estimator to fit a fixed effect panel data model
-1. estimate residuals
-1. regress residuals on time polynomial
-1. predict \alpha_{it}
-1. compute inefficiency as a difference between max(\alpha_{i}) - \alpha_{it}
 }
 
