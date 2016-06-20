@@ -67,19 +67,9 @@ hist(ineff_fit)
 
 Check for separation of frontier and actual production data
 ```{r}
-pr <- predict(model_ex1, type = "frontier")
-hist(pr, xlim = c(0, max(data_ex1$y)))
+yhat <- predict(model_ex1, type = "frontier")
+hist(yhat,       xlim = c(0, max(data_ex1$y)))
 hist(data_ex1$y, xlim = c(0, max(data_ex1$y)))
-```
-
-```{r}
-eff_scaled <- (pr - ineff_fit)/pr
-hist(eff_scaled)
-```
-
-```{r}
-ineff_scaled <- 1-eff_scaled
-hist(ineff_scaled)
 ```
 
 ```{r}
@@ -144,7 +134,7 @@ model_ex2 <- SFA(y ~ x1 + x2,
                  dist = "tnorm",
                  spec = "bc95",
                  opt_control = list(temp = 1, maxit = 6e3, trace = 1),
-                 # deb = T, debll = T
+                 deb = T#, debll = T
 )
 
 print(summary(model_ex2))

@@ -21,15 +21,8 @@ predict.SFA <- function(object,
 #' compute efficiency for SFA models
 #' @export
 efficiency.SFA <- function(object, estimator = "JLMS") {
-
   ineff_vec <- inefficiencyTerm.SFA(object, estimator)
-
-  if (estimator == "BC") {
-    return(exp(-ineff_vec))
-  } else {
-    pred_vec <- predict.SFA(object)
-    return((pred_vec + object$ineff * ineff_vec) / pred_vec)
-  }
+  return(exp(-ineff_vec))
 }
 
 #' predict function for SFA models
