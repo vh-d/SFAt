@@ -444,17 +444,17 @@ summary.SFA <- function(object) {
 #' @export
 print.summary.SFA <- function(object) {
 
-  head_mu   <- matrix(NA, 1, ncol(object$coefficients_frontier))
-  head_cv_u <- head_mu
-  head_cv_v <- head_mu
+  head_cv_u <- matrix(NA, 1, ncol(object$coefficients_frontier))
+  head_cv_v <- head_cv_u
+  if (!is.null(object$coefficients_cm)) head_mu <- head_cv_u
 
-  row.names(head_mu)   <- "mu:"
   row.names(head_cv_u) <- "log(sigma2_u):"
   row.names(head_cv_v) <- "log(sigma2_v):"
+  if (!is.null(object$coefficients_cm)) row.names(head_mu) <- "mu:"
 
-  row.names(object$coefficients_cm)   <- paste("  ", row.names(object$coefficients_cm))
   row.names(object$coefficients_cv_u) <- paste("  ", row.names(object$coefficients_cv_u))
   row.names(object$coefficients_cv_v) <- paste("  ", row.names(object$coefficients_cv_v))
+  if (!is.null(object$coefficients_cm)) row.names(object$coefficients_cm)   <- paste("  ", row.names(object$coefficients_cm))
 
   outtable <- rbind(object$coefficients_frontier,
                     if (!is.null(object$coefficients_cm)) head_mu else NULL,
