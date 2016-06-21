@@ -122,6 +122,27 @@ sfa.fit <- function(y,
     stop("ineff must be either -1 (for production function) or 1 (for cost function). Overriding ineff = -1.")
   }
 
+  # ---- MISSING DATA ----
+
+  cc <- complete.cases(y, X, CM, CV_u, CV_v)
+  ccn <- sum(cc)
+
+  if (length(y) != ccn) {
+    warning("Dropping ", length(y) - ccn, "observarions due to missingness.")
+    oy    <- y
+    oX    <- X
+    oCV_u <- CV_u
+    oCV_v <- CV_v
+    oCM   <- CM
+
+    y    <- y[cc]
+    X    <- X[cc]
+    CV_u <- CV_u[cc]
+    CV_v <- CV_v[cc]
+    CM   <- CM[cc]
+
+    missingness <- T
+  } else missingness <- F
 
   # ---- INIT ----
 
@@ -129,10 +150,10 @@ sfa.fit <- function(y,
 
   if (intercept$f) {
     X <- cbind("(Intercept)" = 1, X)
-    # fcoeff_names <- c("(Intercept)", fcoeff_names)
+    # coeff_f_names <- c("(Intercept)", coeff_f_names)
   }
-  fcoeff_names <- colnames(X)
-  fcoeff_num <- ncol(X) # number of coefficients
+  coeff_f_names <- colnames(X)
+  coeff_f_n     <- ncol(X) # number of coefficients in the frontier model equation
 
   # inefficiency - (un)conditional mean for t-norm distribution
   if (is.null(CM)) {
@@ -204,7 +225,7 @@ sfa.fit <- function(y,
     cat(ifelse(intercept$f == T,
                "X",
                "no X"), " intercept, ", "\n",
-        fcoeff_num,     " X coefficient parameters, ", "\n",
+        coeff_f_n,     " X coefficient parameters, ", "\n",
         coeff_cm_num,   " CM coefficient parameters,", "\n",
         coeff_cv_u_num, " CV_u coefficient parameters,", "\n",
         coeff_cv_v_num, " CV_v coefficient parameters,", "\n")
@@ -228,7 +249,7 @@ sfa.fit <- function(y,
 
   if (is.null(sv$f)) {
     sv$f <- lmfit$coefficients
-    names(sv$f)[1:length(fcoeff_names)] <- fcoeff_names
+    names(sv$f)[1:length(coeff_f_names)] <- coeff_f_names
   } # to-do: else check length
 
   if (dist == "tnorm") {
@@ -272,7 +293,7 @@ sfa.fit <- function(y,
     print(ll_fn_call)
   }
 
-  indeces <- cumsum(c(fcoeff_num,
+  indeces <- cumsum(c(coeff_f_n,
                       coeff_cv_u_num,
                       coeff_cv_v_num,
                       coeff_cm_num))
@@ -309,6 +330,15 @@ sfa.fit <- function(y,
 
   # ---------- RETURN ------------
 
+  if (missingness) {
+    y <- oy
+    X <- oX
+    CV_u <- oCV_u
+    CV_v <- oCV_v
+    CM <- oCM
+  }
+
+
   coeff_frontier <- est$par[1 : (indeces[1])]
   coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
   coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
@@ -323,7 +353,7 @@ sfa.fit <- function(y,
                  cv_v_model     = cv_v_model,
                  coeff_cv_v     = coeff_cv_v,
                  indeces        = indeces,
-                 residuals      = as.vector(y - X %*% est$par[1:fcoeff_num]),
+                 residuals      = as.vector(y - X %*% est$par[1:coeff_f_n]),
                  parameters     = est$par,
                  N              = length(y),
                  ineff          = ineff,
@@ -344,13 +374,16 @@ sfa.fit <- function(y,
                  hessian        = -est$hessian,
                  lmfit          = lmfit)
 
+  attr(result$data, "missingness") <- missingness
+  if (missingness) attr(result$data, "cc") <- cc
+
   class(result) <- c("SFA")
 
   return(result)
 }
 
 
-# FORMULA FUNCTION --------------------------------------------------------
+# FORMULA METHOD --------------------------------------------------------
 
 #' @rdname SFA
 #' @export
@@ -412,7 +445,7 @@ SFA <- function(object, ...) {
   UseMethod("SFA")
 }
 
-# SUMMARY FUNCTION --------------------------------------------------------
+# SUMMARY METHOD --------------------------------------------------------
 #' test statistics for SFA model
 #' @param object object of class SFA
 #' @export
