@@ -1,6 +1,6 @@
 # MAIN FUNCTION -----------------------------------------------------------
 
-#' Fits stochastic frontier analysis (SFA) model
+#' Estimate stochastic frontier analysis (SFA) models.
 #'
 #' @param y dependent (production/cost) variable.
 #' @param X variables of the production/cost function.
@@ -9,20 +9,20 @@
 #' @param CV_v data for conditional variance model of the symmetric error term.
 #' @param ineff -1 (or 1) for production (or cost) function, where inefficiency decreases (or increases) the total output (or costs).
 #' @param intercept list of logical values:
-#' \itemize{
-#' \item f -- TRUE if the intercept term should be added to the main formula.
-#' \item cm -- TRUE if the intercept should be added to the conditional mean equation for the asymmetric term
-#' \item cv_u -- TRUE if the intercept should be added to the conditional inefficiency variance formula.
-#' \item cv_v -- TRUE if the intercept should be added to the conditional inefficiency variance formula.
+#' \describe{
+#' \item{f}{TRUE if the intercept term should be added to the main formula.}
+#' \item{cm}{TRUE if the intercept should be added to the conditional mean equation for the asymmetric term}
+#' \item{cv_u}{TRUE if the intercept should be added to the conditional inefficiency variance formula.}
+#' \item{cv_v}{TRUE if the intercept should be added to the conditional inefficiency variance formula.}
 #' }
 #' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
 #' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
 #' @param sv list. starting values for:
-#' \itemize{
-#' \item f -- frontier model parameters,
-#' \item cm -- starting values for conditional mean model parameters.
-#' \item cv_u -- starting values for conditional variance of the inefficiency term model parameters.
-#' \item cv_v -- starting values for conditional variance of the symmetric term model parameters.
+#' \describe{
+#' \item{f}{frontier model coefficients}
+#' \item{cm}{starting values for conditional mean model parameters.}
+#' \item{cv_u}{starting values for conditional variance of the inefficiency term model parameters.}
+#' \item{cv_v}{starting values for conditional variance of the symmetric term model parameters.}
 #' }
 #' @param ll allows custom log-likelihood function that will be MINIMIZED.
 #' @param opt_method optimization method.
@@ -30,36 +30,55 @@
 #' @param deb debug mode (TRUE/FALSE).
 #' @param debll debug mode of log likelihood functions (TRUE/FALSE).
 #' @details
-#' Notice that the choice of optimization method may have significant impact on the results. It is recommanded to experiment with different optimization algorithms. Recommended are:
+#' \code{sfa.fit()} is the main workhorse function that actually estimate the SFA model. The \code{SFA.formula()} and \code{SFA.list()} methods are provided for more convenient user interface.
+#'
+#' For cross-section data model, the following distributions are currently supported:
 #' \itemize{
-#' \item SANN -- In general, this is the most robust method. It can be slow with larger datasets or more complex models but the results tend to be better if parameters \code{maxit, tmax, temp} are set correctly (maxit > 1e4+, tmax = 15, temp = 1).
-#' \item L-BFGS-B -- Fastest, but can crashes on complex models (infinite log-likelihood values etc...). If starting values are set well, it leads to the same results as SANN but much faster.
-#' \item BFGS -- Fast, but can crashes on complex models (infinite log-likelihood values etc...).
+#' \item normal/half-normal model
+#' \item normal/truncated-normal model
+#' \item normal/exponential model
+#' }
+#' @section Estimation:
+#' Within all these models heteroskedasticity in both symmetric and asymmetric error terms can be explicitly modeled. It can be done by providing matrices of explanatory variables (\code{CV_v} for the symmetric error and \code{CV_u} for the inefficiency term).
+#' Conditional mean of the inefficiency term can be modeled only within the normal/t-normal model.
+#' Models are estimated via maximum likelihood estimators following established literature on the topic.
+#'
+#' @section Starting values:
+#' Starting values are by default coefficients of a linear (OLS) model estimated during within the \code{sfa.fit()} function. Or they can be supplied by user as a list of vectors.
+#'
+#' @section Optimization:
+#' Optimization of log-likelihood functions is currently done by R's default \code{optim()} function. Notice that the choice of optimization method may have significant impact on the results and it is highly recommanded to experiment with different optimization algorithms. Recommended are:
+#'
+#' \describe{
+#' \item{SANN}{In general, this is the most robust method. It can be slow with larger datasets or more complex models but the results tend to be better if parameters \code{maxit, tmax, temp} are set correctly (maxit > 1e4+, tmax = 15, temp = 1).}
+#' \item{L-BFGS-B}{Fastest, but can crashes on complex models (infinite log-likelihood values etc...). If starting values are set well, it leads to the same results as SANN but much faster.}
+#' \item{BFGS}{Fast, but can crashes on complex models (infinite log-likelihood values etc...).}
 #' }
 #' See help for \code{optim()} function.
 #'
-#' @return Returns object of the class SFA which is a list object consisting:
-#' \itemize{
-#' \item coeff -- coefficients for stochastic frontier model
-#' \item coeff_cm -- coefficients for conditional mean of the inefficiency term model
-#' \item coeff_cv_u -- coefficients for conditional variance of the inefficiency term model (heteroskedasticity in the inefficiency)
-#' \item coeff_cv_v -- coefficients for conditional variance of the symmetric error term model (heteroskedasticity in the frontier model error)
-#' \item residuals -- total residuals (= both u + v terms)
-#' \item parameters -- vector of all parameters returend from miximization of log-likelihood
-#' \item N -- total number of observations
-#' \item ineff -- -1 (1 resp.) for production (cost resp.) function
-#' \item ineff_name -- either "production" or "cost" string
-#' \item data -- list of all data used for estimation (including unit vectors as intercepts if appropriate)
-#' \item call is list of \itemize{
+#' @return
+#' Returns object of the class SFA which is a list object consisting:
+#' \describe{
+#' \item{coeff}{coefficients for stochastic frontier model}
+#' \item{coeff_cm}{coefficients for conditional mean of the inefficiency term model}
+#' \item{coeff_cv_u}{coefficients for conditional variance of the inefficiency term model (heteroskedasticity in the inefficiency)}
+#' \item{coeff_cv_v}{coefficients for conditional variance of the symmetric error term model (heteroskedasticity in the frontier model error)}
+#' \item{residuals}{total residuals (= both u + v terms)}
+#' \item{parameters}{vector of all parameters returend from miximization of log-likelihood}
+#' \item{N}{total number of observations}
+#' \item{ineff}{-1 (1 resp.) for production (cost resp.) function}
+#' \item{ineff_name}{either "production" or "cost" string}
+#' \item{data}{list of all data used for estimation (including unit vectors as intercepts if appropriate)}
+#' \item{call}{is list of \itemize{
 #'    \item intercept
 #'    \item dist
 #'    \item spec
 #'    \item structure
 #'    \item sv
-#' }
-#' \item loglik -- log-likehood
-#' \item hessian -- hessian matrix
-#' \item lmfit -- fitted linear model
+#' }}
+#' \item{loglik}{Total log-likehood.}
+#' \item{hessian}{A hessian matrix as returned by optim()}
+#' \item{lmfit}{lm object result of fitted linear model.}
 #' }
 #' @examples
 #' See vignettes.
@@ -333,8 +352,6 @@ sfa.fit <- function(y,
 
 # FORMULA FUNCTION --------------------------------------------------------
 
-#' stochastic frontier analysis
-#' formula interface (experimental)
 #' @rdname SFA
 #' @export
 SFA.formula <- function(formula,
@@ -372,7 +389,6 @@ SFA.formula <- function(formula,
           ...)
 }
 
-#' list of formulas method
 #' @rdname SFA
 #' @export
 SFA.list <- function(formulas,
