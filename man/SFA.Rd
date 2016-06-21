@@ -14,7 +14,7 @@ sfa.fit(y, X, CM = NULL, CV_u = NULL, CV_v = NULL, ineff = -1L,
   opt_control = NULL, deb = F, debll = F)
 
 \method{SFA}{formula}(formula, data = NULL, cm = ~1, cv_u = ~1,
-  cv_v = ~1, deb = FALSE, ...)
+  cv_v = ~1, form = c("production", "cost"), deb = FALSE, ...)
 
 \method{SFA}{list}(formulas, data = NULL, ...)
 

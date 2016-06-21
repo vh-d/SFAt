@@ -359,8 +359,12 @@ SFA.formula <- function(formula,
                         cm = ~1,
                         cv_u = ~1,
                         cv_v = ~1,
+                        form = c("production", "cost"),
                         deb = FALSE,
                         ...){
+
+  form <- match.arg(form)
+  ineff <- if (form == "production") -1L else 1L
 
   # extract the response variable
   y <- data[, all.vars(formula)[1]]
@@ -377,6 +381,7 @@ SFA.formula <- function(formula,
 
   sfa.fit(y = y,
           X = fMat,
+          ineff = ineff,
           CM = cmMat,
           CV_u = cvuMat,
           CV_v = cvvMat,
