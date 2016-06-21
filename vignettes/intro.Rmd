@@ -50,8 +50,7 @@ model_ex1 <- sfa.fit(y = data_ex1$y,
                      X = cbind(a = data_ex1$x1, b = data_ex1$x2),
                      CM = NULL,   
                      dist = "tnorm",
-                     spec = "bc95",
-                     opt_control = list(temp = 1, maxit = 6e4)
+                     opt_control = list(temp = 1, tmax = 20, maxit = 6e4)
                      # deb = T, debll = T
 )
 
@@ -70,6 +69,10 @@ Check for separation of frontier and actual production data
 yhat <- predict(model_ex1, type = "frontier")
 hist(yhat,       xlim = c(0, max(data_ex1$y)))
 hist(data_ex1$y, xlim = c(0, max(data_ex1$y)))
+```
+
+```{r}
+hist(inefficiencyTerm(model_ex1, estimator = "JLMS"))
 ```
 
 ```{r}
@@ -94,7 +97,6 @@ model_ex2 <- sfa.fit(y = data_ex2_cm$y,
                      X = cbind(a = data_ex2_cm$x1, b = data_ex2_cm$x2),
                      CM = cbind(c = data_ex2_cm$z1, d = data_ex2_cm$z2),
                      dist = "tnorm",
-                     spec  = "bc95",
                      # deb = T, debll = T,
                      opt_method = "SANN",
                      opt_control = list(maxit = 50e3))
@@ -132,7 +134,6 @@ hist(ex2_efficiencies)
 model_ex2 <- SFA(y ~ x1 + x2,
                  data = data_ex1,
                  dist = "tnorm",
-                 spec = "bc95",
                  opt_control = list(temp = 1, maxit = 6e3, trace = 1),
                  deb = T#, debll = T
 )

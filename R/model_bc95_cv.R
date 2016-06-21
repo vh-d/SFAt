@@ -1,13 +1,13 @@
 # NORMAL / T-NORMAL MODEL- CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm_bc95 <- NULL
+par_cs_tnorm <- NULL
 
-par_cs_tnorm_bc95_check <- function(params,
-                                    indeces,
-                                    y, X,
-                                    CM = NULL,
-                                    CV_u,
-                                    CV_v) {
+par_cs_tnorm_check <- function(params,
+                               indeces,
+                               y, X,
+                               CM = NULL,
+                               CV_u,
+                               CV_v) {
 
   # extract parameters from parameter vector
   n_f_coeff <- ncol(X) # number of coeffs for frontier model
@@ -23,7 +23,7 @@ par_cs_tnorm_bc95_check <- function(params,
   return(TRUE)
 }
 
-t_par_cs_tnorm_bc95 <- function(pars){
+t_par_cs_tnorm <- function(pars){
   # pars <- sqrt(exp(pars))
   # names(pars) <- c("sigma_v")
   # return(pars)
@@ -34,14 +34,14 @@ t_par_cs_tnorm_bc95 <- function(pars){
 # heterogeneity in efficiency term: endogeneous location parameter mu
 # implemented as Hadri et al. 2003
 # parameters: f_coeff, cm_coeff, cv_u_coeff, cv_v_coeff
-ll_cs_tnorm_bc95 <- function(params,
-                                indeces,
-                                y, X,
-                                CV_u,
-                                CV_v,
-                                CM,
-                                ineff,
-                                deb) {
+ll_cs_tnorm <- function(params,
+                        indeces,
+                        y, X,
+                        CV_u,
+                        CV_v,
+                        CM,
+                        ineff,
+                        deb) {
 
   if (deb) {
     cat("Parameters: ", params)
@@ -88,14 +88,14 @@ ll_cs_tnorm_bc95 <- function(params,
   }
 
   result <- sum(-0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
-                      log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u)))
+                  log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u)))
 
   if (deb) cat("Loglikelihood: ", result,  "\n")
 
   return(-result)
 }
 
-u_cs_tnorm_bc95 <- function(object, estimator) {
+u_cs_tnorm <- function(object, estimator) {
   # extract sigmas from the model object
   sigma2_u <- as.vector(exp(object$data$CV_u %*% object$coeff_cv_u))
   sigma2_v <- as.vector(exp(object$data$CV_v %*% object$coeff_cv_v))

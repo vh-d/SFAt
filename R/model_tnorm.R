@@ -1,8 +1,8 @@
 # NORMAL / T-NORMAL - HOMOSCEDASTIC - CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm <- c(mu = 0.0, lnsigma2_u = 0.5, lnsigma2_v = 0.5)
+par_cs_tnorm_deprec <- c(mu = 0.0, lnsigma2_u = 0.5, lnsigma2_v = 0.5)
 
-t_par_cs_tnorm <- function(pars){
+t_par_cs_tnorm_deprec <- function(pars){
   pars <- sqrt(exp(pars[2:3]))
   names(pars) <- c("sigma_u", "sigma_v")
   return(pars)
@@ -11,7 +11,7 @@ t_par_cs_tnorm <- function(pars){
 # likelihood function normal/truncated-normal distributional assumption
 # params: beta, mu, log(sigma_u^2), log(sigma_v^2)
 
-ll_cs_tnorm <- function(params, y, X, ineff, deb) {
+ll_cs_tnorm_deprec <- function(params, y, X, ineff, deb) {
 
   nbetas <- ncol(X)
 
@@ -21,9 +21,9 @@ ll_cs_tnorm <- function(params, y, X, ineff, deb) {
 
   beta_coef <- params[1:nbetas]
 
-  mu <- params[nbetas + 1]
-  lnsigma2_u <- params[nbetas + 2]
-  lnsigma2_v <- params[nbetas + 3]
+  lnsigma2_u <- params[nbetas + 1]
+  lnsigma2_v <- params[nbetas + 2]
+  mu         <- params[nbetas + 3]
 
   sigma2_u <- exp(lnsigma2_u)
   sigma2_v <- exp(lnsigma2_v)
@@ -68,7 +68,7 @@ ll_cs_tnorm <- function(params, y, X, ineff, deb) {
 }
 
 # INEFFICIENCY TERM ESTIMATION FUNCTION ------
-u_cs_tnorm <- function(object, estimator) {
+u_cs_tnorm_deprec <- function(object, estimator) {
   # extract sigmas from model object
   mu <- object$parameters[length(object$coeff) + 1]
   lnsigma2_u <- object$parameters[length(object$coeff) + 2]
