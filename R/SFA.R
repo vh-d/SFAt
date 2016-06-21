@@ -474,3 +474,8 @@ print.summary.SFA <- function(object) {
   print(outtable, digits = 4, nsmall = 3, na.print = "", quote = F)
   cat("\n", sep = "")
 }
+
+#' @export
+print.SFA <- function(object) {
+  print(summary.SFA(object))
+}
