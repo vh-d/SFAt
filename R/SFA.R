@@ -124,22 +124,29 @@ sfa.fit <- function(y,
 
   # ---- MISSING DATA ----
 
+  if (deb) cat("y:", length(y), "X:", dim(X), "CM:", dim(CM), "CV_u", dim(CV_u), "CV_v:", dim(CV_v), "\n")
+  y[!is.finite(y)] <- NA
+  X[!is.finite(X)] <- NA
+  CV_u[!is.finite(CV_u)] <- NA
+  CV_v[!is.finite(CV_v)] <- NA
+  CM[!is.finite(CM)] <- NA
+
   cc <- complete.cases(y, X, CM, CV_u, CV_v)
   ccn <- sum(cc)
 
   if (length(y) != ccn) {
-    warning("Dropping ", length(y) - ccn, "observarions due to missingness.")
+    warning("Dropping ", length(y) - ccn, " observartions due to missingness.")
     oy    <- y
     oX    <- X
     oCV_u <- CV_u
     oCV_v <- CV_v
     oCM   <- CM
 
-    y    <- y[cc]
-    X    <- X[cc]
-    CV_u <- CV_u[cc]
-    CV_v <- CV_v[cc]
-    CM   <- CM[cc]
+    y    <- subset(y, cc)
+    X    <- subset(X, cc)
+    CV_u <- subset(CV_u, cc)
+    CV_v <- subset(CV_v, cc)
+    CM   <- subset(CM, cc)
 
     missingness <- T
   } else missingness <- F
@@ -225,13 +232,13 @@ sfa.fit <- function(y,
     cat(ifelse(intercept$f == T,
                "X",
                "no X"), " intercept, ", "\n",
-        coeff_f_n,     " X coefficient parameters, ", "\n",
+        coeff_f_n,      " X coefficient parameters, ", "\n",
         coeff_cm_num,   " CM coefficient parameters,", "\n",
         coeff_cv_u_num, " CV_u coefficient parameters,", "\n",
         coeff_cv_v_num, " CV_v coefficient parameters,", "\n")
   }
 
-
+  if (deb) cat(str(CV_v))
   # ---- MODEL SPECIFICATION ----
 
   model_spec <- paste0(structure, "_",
@@ -244,6 +251,9 @@ sfa.fit <- function(y,
   # ---- STARTING VALUES ----
 
   # fit OLS for starting values of frontier model coefficients
+  if (deb) cat("Fitting OLS for starting values...\n")
+  if (deb) cat("y length:", length(y), "X dim:", dim(X), "\n")
+  if (deb) cat(str(X), "\n", str(names(X)), "\n", sum(is.na(X)), "\n")
   lmfit <- lm(y ~ X - 1) # intercept is part of X already
   if (deb) print(summary(lmfit))
 
@@ -403,10 +413,13 @@ SFA.formula <- function(formula,
   y <- data[, all.vars(formula)[1]]
 
   # extract the explanatory variables
+  temp <- options("na.action")
+  options(na.action = "na.pass")
   fMat <- model.matrix(formula, data = data)
   if (!is.null(cm)   & class(cm)   == "formula") {cmMat  <- model.matrix(cm,   data = data)}
   if (!is.null(cv_u) & class(cv_u) == "formula") {cvuMat <- model.matrix(cv_u, data = data)}
   if (!is.null(cv_v) & class(cv_v) == "formula") {cvvMat <- model.matrix(cv_v, data = data)}
+  # options(na.action = temp)
 
   if (deb) {
     print(head(fMat)); print(head(cmMat)); print(head(cvuMat)); print(head(cvvMat))
