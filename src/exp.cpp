@@ -30,10 +30,10 @@ double ll_cs_exp_cpp(const NumericVector& pars,
   const NumericVector cv_v_coefs(pars.begin() + indeces[1],
                                  pars.end());
 
-  const int nbetas = X.ncol();
+  // const int nbetas = X.ncol();
   const int N_obs = y.size();
   NumericVector epsilon(N_obs);
-  int i, j = 0;
+  int i = 0;
 
   double ll = 0.0;
   double tmp = 0.0;
@@ -113,9 +113,11 @@ double ll_cs_exp_cpp(const NumericVector& pars,
   }
 
   if (deb) {
-    Rcout << std::setprecision(20) << -ll << std::endl;
+    Rcout << std::setprecision(20) << ll << std::endl;
   }
 
-  return -ll;
+  if (!R_finite(ll)) return(-1e100);
+
+  return ll;
 }
 

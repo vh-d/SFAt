@@ -133,9 +133,12 @@ hist(ex2_efficiencies)
 
 model_ex2 <- SFA(y ~ x1 + x2,
                  data = data_ex1,
-                 dist = "tnorm",
-                 opt_control = list(temp = 1, maxit = 6e3, trace = 1),
-                 deb = T#, debll = T
+                 dist = "exp",
+                 ll = "ll_cs_exp_cpp",
+                 # cm = ~ 0,
+                 opt_method = "NR",
+                 opt_control = list(printLevel = 3),
+                 # deb = T#, debll = T
 )
 
 print(summary(model_ex2))

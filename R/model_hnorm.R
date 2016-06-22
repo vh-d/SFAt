@@ -76,7 +76,9 @@ ll_cs_hnorm <- function(params,
     cat("Log-ll: ", ll, "\n")
   }
 
-  return(-ll)
+  if (!is.finite(ll)) return(-1e100)
+
+  return(ll)
 }
 
 # Jondrow et al. (1982) as in Parmeter-Kumbhakar

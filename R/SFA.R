@@ -172,7 +172,7 @@ sfa.fit <- function(y,
     cm_model <- F
     coeff_cm_num <- 1
   } else {
-    if (dist != "tnorm") stop("Conditional mean of inefficiency term model only possible for normal/t-normal model. ")
+    if (dist != "tnorm") warning("Conditional mean of inefficiency term model only possible for normal/t-normal model. ")
     if (intercept$cm) {
       CM <- cbind("(Intercept)" = 1.0, CM)
     }
@@ -322,12 +322,12 @@ sfa.fit <- function(y,
 
 
   # ------- MLE ----------
+  require(maxLik)
 
-  est <- optim(svv,
-               fn = eval(parse(text = ll_fn_call)),
+  est <- maxLik(start = svv,
+               logLik = eval(parse(text = ll_fn_call)),
                method = opt_method,
                control = opt_control,
-               hessian = T,
                indeces = indeces,
                y = y,
                X = X,
@@ -349,11 +349,11 @@ sfa.fit <- function(y,
   }
 
 
-  coeff_frontier <- est$par[1 : (indeces[1])]
-  coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
-  coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
+  coeff_frontier <- est$estimate[1 : (indeces[1])]
+  coeff_cv_u     <- est$estimate[(1 + indeces[1]) : (indeces[2])]
+  coeff_cv_v     <- est$estimate[(1 + indeces[2]) : (indeces[3])]
   coeff_cm <-  if (dist == "tnorm")
-    est$par[(1 + indeces[3]) : (indeces[4])]
+    est$estimate[(1 + indeces[3]) : (indeces[4])]
 
   result <- list(coeff_frontier = coeff_frontier,
                  cm_model       = cm_model,
@@ -363,8 +363,8 @@ sfa.fit <- function(y,
                  cv_v_model     = cv_v_model,
                  coeff_cv_v     = coeff_cv_v,
                  indeces        = indeces,
-                 residuals      = as.vector(y - X %*% est$par[1:coeff_f_n]),
-                 parameters     = est$par,
+                 residuals      = as.vector(y - X %*% est$estimate[1:coeff_f_n]),
+                 parameters     = est$estimate,
                  N              = length(y),
                  ineff          = ineff,
                  ineff_name     = if (ineff == -1) "production" else "cost",
@@ -380,9 +380,10 @@ sfa.fit <- function(y,
                                        model_spec = model_spec,
                                        sv = sv,
                                        structure = structure),
-                 loglik         = -est$val,
-                 hessian        = -est$hessian,
-                 lmfit          = lmfit)
+                 loglik         = est$maximum,
+                 hessian        = est$hessian,
+                 lmfit          = lmfit,
+                 opt            = est)
 
   attr(result$data, "missingness") <- missingness
   if (missingness) attr(result$data, "cc") <- cc

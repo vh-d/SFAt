@@ -92,7 +92,8 @@ ll_cs_tnorm <- function(params,
 
   if (deb) cat("Loglikelihood: ", result,  "\n")
 
-  return(-result)
+  if (!is.finite(result)) return(-1e100)
+  return(result)
 }
 
 u_cs_tnorm <- function(object, estimator) {

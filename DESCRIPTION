@@ -11,7 +11,8 @@ RoxygenNote: 5.0.1
 Imports:
   Rcpp (>= 0.12.5),
   lmtest,
-  plm
+  plm,
+  maxLik
 Suggests:
   knitr,
   ggplot2,
