@@ -12,7 +12,7 @@ Imports:
   Rcpp (>= 0.12.5),
   lmtest,
   plm,
-  maxLik
+  nloptr
 Suggests:
   knitr,
   ggplot2,

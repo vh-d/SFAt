@@ -87,13 +87,14 @@ ll_cs_tnorm <- function(params,
         length(sigma_u) == N, "\n")
   }
 
-  result <- sum(-0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
+  ll <- sum(-0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
                   log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u)))
 
   if (deb) cat("Loglikelihood: ", result,  "\n")
 
-  if (!is.finite(result)) return(-1e100)
-  return(result)
+  if (!is.finite(ll)) return(1e100)
+
+  return(-ll)
 }
 
 u_cs_tnorm <- function(object, estimator) {

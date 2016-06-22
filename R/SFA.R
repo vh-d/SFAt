@@ -104,11 +104,13 @@ sfa.fit <- function(y,
                               cv_u = NULL,
                               cv_v = NULL),
                     ll = NULL,
+                    algorithm = c("LD_LBFGS", "GO_ESCH"),
+                    lb = NULL, ub = NULL,
+                    opts = list(),
                     opt_method = "SANN",
                     opt_control = NULL,
                     deb = F, # TRUE for debug reports
-                    debll = F
-) {
+                    debll = F) {
 
   structure <- "cs"
   # ------ VALIDATE ARGUMENTS --------
@@ -270,12 +272,12 @@ sfa.fit <- function(y,
   } else sv$cm = NULL
 
   if (is.null(sv$cv_u)) {
-    sv$cv_u <- rep(0.0, coeff_cv_u_num)
+    sv$cv_u <- rep(5.0, coeff_cv_u_num)
     names(sv$cv_u) <- coeff_cv_u_names
   } # to-do: else check length
 
   if (is.null(sv$cv_v)) {
-    sv$cv_v <- rep(0.0, coeff_cv_v_num)
+    sv$cv_v <- rep(5.0, coeff_cv_v_num)
     names(sv$cv_v) <- coeff_cv_v_names
   } # to-do: else check length
 
@@ -286,8 +288,7 @@ sfa.fit <- function(y,
            sv$cm,
            model_parameters)
 
-  if (deb) cat("Starting values: ",
-               svv)
+  if (deb) cat("Starting values: ", svv)
 
   if (is.null(ll)) {
     ll_fn_call <- paste0("ll", "_", model_spec)
@@ -322,12 +323,14 @@ sfa.fit <- function(y,
 
 
   # ------- MLE ----------
-  require(maxLik)
+  require(nloptr)
 
-  est <- maxLik(start = svv,
-               logLik = eval(parse(text = ll_fn_call)),
-               method = opt_method,
-               control = opt_control,
+  est1 <- nloptr(x0 = svv,
+               eval_f = eval(parse(text = ll_fn_call)),
+               lb = rep(lb, length(svv)),
+               ub = rep(ub, length(svv)),
+               opts = opts,
+               # local_opts = list( "algorithm" = local_algo, "xtol_rel"  = 1.0e-7 ),
                indeces = indeces,
                y = y,
                X = X,
@@ -336,6 +339,30 @@ sfa.fit <- function(y,
                CV_v = CV_v,
                ineff = ineff,
                deb = debll)
+
+  if (deb) print(est1)
+
+  est <- optim(par = est1$solution,
+               fn = eval(parse(text = ll_fn_call)),
+               method = opt_method,
+               control = opt_control,
+               hessian = T,
+               indeces = indeces,
+               y = y,
+               X = X,
+               CM = CM,
+               CV_u = CV_u,
+               CV_v = CV_v,
+               ineff = ineff,
+               deb = debll)
+
+
+  if (deb) {
+    cat(est$par, "\n")
+    cat(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (!is.null(CM)) coeff_cm_names else NULL, "\n")
+  }
+
+  names(est$par) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
 
 
   # ---------- RETURN ------------
@@ -349,11 +376,11 @@ sfa.fit <- function(y,
   }
 
 
-  coeff_frontier <- est$estimate[1 : (indeces[1])]
-  coeff_cv_u     <- est$estimate[(1 + indeces[1]) : (indeces[2])]
-  coeff_cv_v     <- est$estimate[(1 + indeces[2]) : (indeces[3])]
+  coeff_frontier <- est$par[1 : (indeces[1])]
+  coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
+  coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
   coeff_cm <-  if (dist == "tnorm")
-    est$estimate[(1 + indeces[3]) : (indeces[4])]
+    est$par[(1 + indeces[3]) : (indeces[4])]
 
   result <- list(coeff_frontier = coeff_frontier,
                  cm_model       = cm_model,
@@ -363,8 +390,8 @@ sfa.fit <- function(y,
                  cv_v_model     = cv_v_model,
                  coeff_cv_v     = coeff_cv_v,
                  indeces        = indeces,
-                 residuals      = as.vector(y - X %*% est$estimate[1:coeff_f_n]),
-                 parameters     = est$estimate,
+                 residuals      = as.vector(y - X %*% est$par[1:coeff_f_n]),
+                 parameters     = est$par,
                  N              = length(y),
                  ineff          = ineff,
                  ineff_name     = if (ineff == -1) "production" else "cost",
@@ -380,8 +407,8 @@ sfa.fit <- function(y,
                                        model_spec = model_spec,
                                        sv = sv,
                                        structure = structure),
-                 loglik         = est$maximum,
-                 hessian        = est$hessian,
+                 loglik         = -est$value,
+                 hessian        = -est$hessian,
                  lmfit          = lmfit,
                  opt            = est)
 
