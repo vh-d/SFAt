@@ -69,7 +69,9 @@ ll_cs_exp <- function(params,
               log(pnorm(-(epsilon + (sigma2_v / sigma_u)) / sigma_v)) +
               epsilon / sigma_u)
 
-  return(-ll)
+  if (!is.finite(ll)) return(-1e100)
+
+  return(ll)
 }
 
 u_cs_exp <- function(object, estimator) {

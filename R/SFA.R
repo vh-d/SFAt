@@ -172,7 +172,7 @@ sfa.fit <- function(y,
     cm_model <- F
     coeff_cm_num <- 1
   } else {
-    if (dist != "tnorm") stop("Conditional mean of inefficiency term model only possible for normal/t-normal model. ")
+    if (dist != "tnorm") warning("Conditional mean of inefficiency term model only possible for normal/t-normal model. ")
     if (intercept$cm) {
       CM <- cbind("(Intercept)" = 1.0, CM)
     }
@@ -322,6 +322,7 @@ sfa.fit <- function(y,
 
 
   # ------- MLE ----------
+  opt_control <- c(opt_control, fnscale = -1L)
 
   est <- optim(svv,
                fn = eval(parse(text = ll_fn_call)),
@@ -380,8 +381,8 @@ sfa.fit <- function(y,
                                        model_spec = model_spec,
                                        sv = sv,
                                        structure = structure),
-                 loglik         = -est$val,
-                 hessian        = -est$hessian,
+                 loglik         = est$val,
+                 hessian        = est$hessian,
                  lmfit          = lmfit)
 
   attr(result$data, "missingness") <- missingness

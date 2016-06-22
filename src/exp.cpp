@@ -116,6 +116,8 @@ double ll_cs_exp_cpp(const NumericVector& pars,
     Rcout << std::setprecision(20) << -ll << std::endl;
   }
 
-  return -ll;
+  if (!R_finite(ll)) return(-1e100);
+
+  return ll;
 }
 
