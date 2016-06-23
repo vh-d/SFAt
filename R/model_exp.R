@@ -65,11 +65,15 @@ ll_cs_exp <- function(params,
 
   N <- length(y)
 
-  ll <- sum(-log(sigma_u) + 0.5 * sigma2_v / sigma2_u +
-              log(pnorm(-(epsilon + (sigma2_v / sigma_u)) / sigma_v)) +
-              epsilon / sigma_u)
+  lli <- -log(sigma_u) + 0.5 * sigma2_v / sigma2_u +
+    log(pnorm(-(epsilon + (sigma2_v / sigma_u)) / sigma_v)) +
+    epsilon / sigma_u
 
-  if (!is.finite(ll)) return(1e100)
+  ll <- sum(lli)
+
+  if (!is.finite(ll)) {
+    return(sum(!is.finite(lli))*1e100)
+  }
 
   return(-ll)
 }
