@@ -392,7 +392,8 @@ sfa.fit <- function(y,
                  indeces        = indeces,
                  residuals      = as.vector(y - X %*% est$par[1:coeff_f_n]),
                  parameters     = est$par,
-                 N              = length(y),
+                 N              = ccn,
+                 N_total        = length(y),
                  ineff          = ineff,
                  ineff_name     = if (ineff == -1) "production" else "cost",
                  data           = list(y = y,
@@ -566,7 +567,7 @@ print.summary.SFA <- function(object) {
   cat("Total observations:", object$N, if (object$call$structure == "panel") "in cross-section." else NULL, "\n")
   cat("Log-likelihood:", object$loglik, "\n")
   cat("\n", sep = "")
-  print(outtable, digits = 4, nsmall = 3, na.print = "", quote = F)
+  print(round(outtable, digits = 4), digits = 4, nsmall = 3, na.print = "", quote = F)
   cat("\n", sep = "")
 }
 
