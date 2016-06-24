@@ -127,11 +127,11 @@ sfa.fit <- function(y,
   if (deb) cat("y:", length(y), "X:", dim(X), "CM:", dim(CM), "CV_u", dim(CV_u), "CV_v:", dim(CV_v), "\n")
   y[!is.finite(y)] <- NA
   X[!is.finite(X)] <- NA
-  CV_u[!is.finite(CV_u)] <- NA
-  CV_v[!is.finite(CV_v)] <- NA
-  CM[!is.finite(CM)] <- NA
+  if (!is.null(CV_u)) CV_u[!is.finite(CV_u)] <- NA
+  if (!is.null(CV_v)) CV_v[!is.finite(CV_v)] <- NA
+  if (!is.null(CM))   CM[!is.finite(CM)] <- NA
 
-  cc <- complete.cases(y, X, CM, CV_u, CV_v)
+  cc <- complete.cases(y, X, if (!is.null(CM)) CM, if (!is.null(CV_u)) CV_u, if (!is.null(CV_v)) CV_v)
   ccn <- sum(cc)
 
   if (length(y) != ccn) {
@@ -270,12 +270,12 @@ sfa.fit <- function(y,
   } else sv$cm = NULL
 
   if (is.null(sv$cv_u)) {
-    sv$cv_u <- rep(0.0, coeff_cv_u_num)
+    sv$cv_u <- rep(5.0, coeff_cv_u_num)
     names(sv$cv_u) <- coeff_cv_u_names
   } # to-do: else check length
 
   if (is.null(sv$cv_v)) {
-    sv$cv_v <- rep(0.0, coeff_cv_v_num)
+    sv$cv_v <- rep(5.0, coeff_cv_v_num)
     names(sv$cv_v) <- coeff_cv_v_names
   } # to-do: else check length
 
@@ -286,8 +286,7 @@ sfa.fit <- function(y,
            sv$cm,
            model_parameters)
 
-  if (deb) cat("Starting values: ",
-               svv)
+  if (deb) cat("Starting values: ", svv)
 
   if (is.null(ll)) {
     ll_fn_call <- paste0("ll", "_", model_spec)
@@ -338,6 +337,14 @@ sfa.fit <- function(y,
                deb = debll)
 
 
+  if (deb) {
+    cat(est$par, "\n")
+    cat(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (!is.null(CM)) coeff_cm_names else NULL, "\n")
+  }
+
+  names(est$estimate) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
+
+
   # ---------- RETURN ------------
 
   if (missingness) {
@@ -365,7 +372,8 @@ sfa.fit <- function(y,
                  indeces        = indeces,
                  residuals      = as.vector(y - X %*% est$estimate[1:coeff_f_n]),
                  parameters     = est$estimate,
-                 N              = length(y),
+                 N              = ccn,
+                 N_total        = length(y),
                  ineff          = ineff,
                  ineff_name     = if (ineff == -1) "production" else "cost",
                  data           = list(y = y,
@@ -417,9 +425,9 @@ SFA.formula <- function(formula,
   temp <- options("na.action")
   options(na.action = "na.pass")
   fMat <- model.matrix(formula, data = data)
-  if (!is.null(cm)   & class(cm)   == "formula") {cmMat  <- model.matrix(cm,   data = data)}
-  if (!is.null(cv_u) & class(cv_u) == "formula") {cvuMat <- model.matrix(cv_u, data = data)}
-  if (!is.null(cv_v) & class(cv_v) == "formula") {cvvMat <- model.matrix(cv_v, data = data)}
+  if (!is.null(cm)   & class(cm)   == "formula") {cmMat  <- model.matrix(cm,   data = data)} else cmMat  <- NULL
+  if (!is.null(cv_u) & class(cv_u) == "formula") {cvuMat <- model.matrix(cv_u, data = data)} else cvuMat <- NULL
+  if (!is.null(cv_v) & class(cv_v) == "formula") {cvvMat <- model.matrix(cv_v, data = data)} else cvvMat <- NULL
   # options(na.action = temp)
 
   if (deb) {
@@ -465,7 +473,7 @@ SFA <- function(object, ...) {
 #' @export
 summary.SFA <- function(object) {
 
-  coef_sd <- sqrt(-diag(solve(object$hessian)))
+  coef_sd <- sqrt(-diag(solve(object$hessian, tol = 100*.Machine$double.xmin)))
   coef_tstats <- object$parameters/coef_sd
   coef_pvalues <- 2 * pt(q = abs(coef_tstats),
                          df = object$N - length(object$parameters),
@@ -539,7 +547,7 @@ print.summary.SFA <- function(object) {
   cat("Total observations:", object$N, if (object$call$structure == "panel") "in cross-section." else NULL, "\n")
   cat("Log-likelihood:", object$loglik, "\n")
   cat("\n", sep = "")
-  print(outtable, digits = 4, nsmall = 3, na.print = "", quote = F)
+  print(round(outtable, digits = 4), digits = 4, nsmall = 3, na.print = "", quote = F)
   cat("\n", sep = "")
 }
 

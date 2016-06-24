@@ -65,18 +65,18 @@ ll_cs_hnorm <- function(params,
 
   N <- length(y)
 
-  ll <-
-    -(N*log(pi/2)) + # the const term
-    + sum(-log(sigma)
-          +log(pnorm(-(epsilon * sqrt(sigma2_u) / sqrt(sigma2_v)) / sigma))
-          -0.5 * (epsilon^2) / (sigma2_u + sigma2_v))
+  lli <-
+    -log(pi/2) + # the const term
+    -log(sigma) +
+    +log(pnorm(-(epsilon * sqrt(sigma2_u) / sqrt(sigma2_v)) / sigma)) +
+    -0.5 * (epsilon^2) / (sigma2_u + sigma2_v)
 
-  if (deb) {
-    if (is.nan(ll)) print(paste(sigma))
-    cat("Log-ll: ", ll, "\n")
+  ll <- sum(lli)
+  if (deb) cat("Loglikelihood: ", ll,  "\n")
+
+  if (!is.finite(ll)) {
+    return(sum(!is.finite(lli))*-1e100)
   }
-
-  if (!is.finite(ll)) return(-1e100)
 
   return(ll)
 }
