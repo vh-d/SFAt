@@ -129,11 +129,11 @@ sfa.fit <- function(y,
   if (deb) cat("y:", length(y), "X:", dim(X), "CM:", dim(CM), "CV_u", dim(CV_u), "CV_v:", dim(CV_v), "\n")
   y[!is.finite(y)] <- NA
   X[!is.finite(X)] <- NA
-  CV_u[!is.finite(CV_u)] <- NA
-  CV_v[!is.finite(CV_v)] <- NA
-  CM[!is.finite(CM)] <- NA
+  if (!is.null(CV_u)) CV_u[!is.finite(CV_u)] <- NA
+  if (!is.null(CV_v)) CV_v[!is.finite(CV_v)] <- NA
+  if (!is.null(CM))   CM[!is.finite(CM)] <- NA
 
-  cc <- complete.cases(y, X, CM, CV_u, CV_v)
+  cc <- complete.cases(y, X, if (!is.null(CM)) CM, if (!is.null(CV_u)) CV_u, if (!is.null(CV_v)) CV_v)
   ccn <- sum(cc)
 
   if (length(y) != ccn) {
@@ -327,8 +327,8 @@ sfa.fit <- function(y,
   if (nlopt) {
     require(nloptr)
     if (!is.null(nlopt_bounds)) {
-      if (length(nlopt_bounds$ub) == 1) ub <- rep(ub, length(svv)) else ub <- nlopt_bounds$ub # to-do: check length
-      if (length(nlopt_bounds$lb) == 1) lb <- rep(lb, length(svv)) else lb <- nlopt_bounds$lb # to-do: check length
+      if (length(nlopt_bounds$ub) == 1) ub <- rep(nlopt_bounds$ub, length(svv)) else ub <- nlopt_bounds$ub # to-do: check length
+      if (length(nlopt_bounds$lb) == 1) lb <- rep(nlopt_bounds$lb, length(svv)) else lb <- nlopt_bounds$lb # to-do: check length
     } else ub = lb = NULL
 
     est1 <- nloptr(x0 = svv,
@@ -381,7 +381,6 @@ sfa.fit <- function(y,
     CM <- oCM
   }
 
-
   coeff_frontier <- est$par[1 : (indeces[1])]
   coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
   coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
@@ -417,7 +416,8 @@ sfa.fit <- function(y,
                  loglik         = -est$value,
                  hessian        = -est$hessian,
                  lmfit          = lmfit,
-                 opt            = est)
+                 opt            = est,
+                 nlopt          = if (nlopt) est1)
 
   attr(result$data, "missingness") <- missingness
   if (missingness) attr(result$data, "cc") <- cc
@@ -451,9 +451,9 @@ SFA.formula <- function(formula,
   temp <- options("na.action")
   options(na.action = "na.pass")
   fMat <- model.matrix(formula, data = data)
-  if (!is.null(cm)   & class(cm)   == "formula") {cmMat  <- model.matrix(cm,   data = data)}
-  if (!is.null(cv_u) & class(cv_u) == "formula") {cvuMat <- model.matrix(cv_u, data = data)}
-  if (!is.null(cv_v) & class(cv_v) == "formula") {cvvMat <- model.matrix(cv_v, data = data)}
+  if (!is.null(cm)   & class(cm)   == "formula") {cmMat  <- model.matrix(cm,   data = data)} else cmMat  <- NULL
+  if (!is.null(cv_u) & class(cv_u) == "formula") {cvuMat <- model.matrix(cv_u, data = data)} else cvuMat <- NULL
+  if (!is.null(cv_v) & class(cv_v) == "formula") {cvvMat <- model.matrix(cv_v, data = data)} else cvvMat <- NULL
   # options(na.action = temp)
 
   if (deb) {
@@ -499,7 +499,7 @@ SFA <- function(object, ...) {
 #' @export
 summary.SFA <- function(object) {
 
-  coef_sd <- sqrt(-diag(solve(object$hessian)))
+  coef_sd <- sqrt(-diag(solve(object$hessian, tol = 100*.Machine$double.xmin)))
   coef_tstats <- object$parameters/coef_sd
   coef_pvalues <- 2 * pt(q = abs(coef_tstats),
                          df = object$N - length(object$parameters),
