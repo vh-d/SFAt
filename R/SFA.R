@@ -104,11 +104,11 @@ sfa.fit <- function(y,
                               cv_u = NULL,
                               cv_v = NULL),
                     ll = NULL,
-                    algorithm = c("LD_LBFGS", "GO_ESCH"),
-                    lb = NULL, ub = NULL,
-                    opts = list(),
-                    opt_method = "SANN",
-                    opt_control = NULL,
+                    nlopt = T,
+                    nlopt_bounds = NULL,
+                    nlopt_opts = NULL,
+                    optim_method = "L-BFGS-B",
+                    optim_control = NULL,
                     deb = F, # TRUE for debug reports
                     debll = F) {
 
@@ -323,39 +323,45 @@ sfa.fit <- function(y,
 
 
   # ------- MLE ----------
-  require(nloptr)
+  # optional first-step optimization with NLopt
+  if (nlopt) {
+    require(nloptr)
+    if (!is.null(nlopt_bounds)) {
+      if (length(nlopt_bounds$ub) == 1) ub <- rep(ub, length(svv)) else ub <- nlopt_bounds$ub # to-do: check length
+      if (length(nlopt_bounds$lb) == 1) lb <- rep(lb, length(svv)) else lb <- nlopt_bounds$lb # to-do: check length
+    } else ub = lb = NULL
 
-  est1 <- nloptr(x0 = svv,
-               eval_f = eval(parse(text = ll_fn_call)),
-               lb = rep(lb, length(svv)),
-               ub = rep(ub, length(svv)),
-               opts = opts,
-               # local_opts = list( "algorithm" = local_algo, "xtol_rel"  = 1.0e-7 ),
-               indeces = indeces,
-               y = y,
-               X = X,
-               CM = CM,
-               CV_u = CV_u,
-               CV_v = CV_v,
-               ineff = ineff,
-               deb = debll)
+    est1 <- nloptr(x0 = svv,
+                   eval_f = eval(parse(text = ll_fn_call)),
+                   lb = lb, ub = ub,
+                   opts = nlopt_opts,
+                   y = y, # these parameters are passed to the likelihood function
+                   X = X,
+                   indeces = indeces,
+                   CM = CM,
+                   CV_u = CV_u,
+                   CV_v = CV_v,
+                   ineff = ineff,
+                   deb = debll)
 
-  if (deb) print(est1)
+    svv <- est1$solution
 
-  est <- optim(par = est1$solution,
+    if (deb) print(est1)
+  }
+
+  est <- optim(par = svv,
                fn = eval(parse(text = ll_fn_call)),
-               method = opt_method,
-               control = opt_control,
+               method = optim_method,
+               control = optim_control,
                hessian = T,
-               indeces = indeces,
-               y = y,
+               y = y,# these parameters are passed to the likelihood function
                X = X,
+               indeces = indeces,
                CM = CM,
                CV_u = CV_u,
                CV_v = CV_v,
                ineff = ineff,
                deb = debll)
-
 
   if (deb) {
     cat(est$par, "\n")
