@@ -1,7 +1,5 @@
 # NORMAL / T-NORMAL MODEL- CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm <- NULL
-
 par_cs_tnorm_check <- function(params,
                                indeces,
                                y, X,

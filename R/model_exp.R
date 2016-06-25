@@ -1,7 +1,5 @@
 # NORMAL / EXPONENTIAL - HOMOSCEDASTIC - CROSS SECTION DATA ----------------------------
 
-par_cs_exp <- NULL
-
 par_cs_exp_check <- function(params,
                              indeces,
                              y, X,

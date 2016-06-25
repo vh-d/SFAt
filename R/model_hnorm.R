@@ -1,7 +1,5 @@
 # NORMAL / H-NORMAL - HOMOSCEDASTIC - CROSS SECTION DATA ----------------------------
 
-par_cs_hnorm <- NULL
-
 par_cs_hnorm_check <- function(params,
                                indeces,
                                y, X,

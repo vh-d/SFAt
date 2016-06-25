@@ -247,8 +247,6 @@ sfa.fit <- function(y,
                        dist,
                        if (is.null(spec)) NULL else paste0("_", spec))
 
-  model_parameters <- eval(parse(text = paste0("par_", model_spec)))
-
 
   # ---- STARTING VALUES ----
 
@@ -285,8 +283,7 @@ sfa.fit <- function(y,
   svv <- c(sv$f,
            sv$cv_u,
            sv$cv_v,
-           sv$cm,
-           model_parameters)
+           sv$cm)
 
   if (deb) cat("Starting values: ", svv)
 
