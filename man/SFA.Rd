@@ -56,13 +56,17 @@ SFA(object, ...)
 
 \item{ll}{allows custom log-likelihood function that will be MINIMIZED.}
 
+\item{nlopt}{logical. TRUE for using nloptr routines as a first step for MLE optimization}
+
+\item{nlopt_opts}{list of nloptr options.}
+
+\item{optim_method}{algorithm for (second-step) optimization.}
+
+\item{optim_control}{list of options for \code{optim()} routine.}
+
 \item{deb}{debug mode (TRUE/FALSE).}
 
 \item{debll}{debug mode of log likelihood functions (TRUE/FALSE).}
-
-\item{opt_method}{optimization method.}
-
-\item{opt_control}{list of options for optimization routine.}
 }
 \value{
 Returns object of the class SFA which is a list object consisting:
@@ -87,6 +91,8 @@ Returns object of the class SFA which is a list object consisting:
 \item{loglik}{Total log-likehood.}
 \item{hessian}{A hessian matrix as returned by optim()}
 \item{lmfit}{lm object result of fitted linear model.}
+\item{optim}{object returned by \code{optim()}}
+\item{nlopt}{object returned by \code{nloptr()}}
 }
 }
 \description{

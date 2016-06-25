@@ -7,6 +7,8 @@ Its development was inspired by some existing software for SFA (R packages *fron
 
 **This package is in beta version. It is functional but the interface is under development. Therefor it is not ready for regular use.**
 
+Contributions and suggestions are welcome!
+
 Installation
 ------------
 
@@ -40,9 +42,7 @@ To-do:
     - [ ] time decay model
     - [x] fixed effects in conditional mean equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
     - [x] fixed effects in conditional variance equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
-- [ ] robust standard errors
-- [ ] add tests
+- [x] explore `nloptr`, and `maxLik` packages for MLE optimizations  
+- [ ] explore `optimx` package for MLE optimization  
+- [ ] add analytic gradient functions
 - [ ] rewrite likelihood functions in C++ (using Rcpp), altough the speed increase is small based on first experiments
-- [ ] explore `nloptr`, and `maxLik` packages for MLE optimizations  
-
-Contributions and suggestions are welcome!

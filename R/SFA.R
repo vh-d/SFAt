@@ -25,8 +25,10 @@
 #' \item{cv_v}{starting values for conditional variance of the symmetric term model parameters.}
 #' }
 #' @param ll allows custom log-likelihood function that will be MINIMIZED.
-#' @param opt_method optimization method.
-#' @param opt_control list of options for optimization routine.
+#' @param nlopt logical. TRUE for using nloptr routines as a first step for MLE optimization
+#' @param nlopt_opts list of nloptr options.
+#' @param optim_method algorithm for (second-step) optimization.
+#' @param optim_control list of options for \code{optim()} routine.
 #' @param deb debug mode (TRUE/FALSE).
 #' @param debll debug mode of log likelihood functions (TRUE/FALSE).
 #' @details
@@ -79,6 +81,8 @@
 #' \item{loglik}{Total log-likehood.}
 #' \item{hessian}{A hessian matrix as returned by optim()}
 #' \item{lmfit}{lm object result of fitted linear model.}
+#' \item{optim}{object returned by \code{optim()}}
+#' \item{nlopt}{object returned by \code{nloptr()}}
 #' }
 #' @examples
 #' See vignettes.
