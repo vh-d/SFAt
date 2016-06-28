@@ -37,22 +37,25 @@ ll_cs_hnorm <- function(params,
                         CV_u,
                         CV_v,
                         ineff,
+                        minmax,
                         deb) {
 
   if (deb) {
-    cat("Parameters: ", params)
+    cat("Parameters: ", params, "\n")
   }
 
   f_coeff    <- params[              1 :indeces[1]]
   cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
   cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
 
-  sigma2_u <- as.vector(exp(CV_u %*% cv_u_coeff))
-  sigma2_v <- as.vector(exp(CV_v %*% cv_v_coeff))
+  sigma_u <- as.vector(exp(CV_u %*% cv_u_coeff))
+  sigma_v <- as.vector(exp(CV_v %*% cv_v_coeff))
 
-  sigma_u <- sqrt(sigma2_u)
-  sigma_v <- sqrt(sigma2_v)
-  sigma <- sqrt(sigma2_u + sigma2_v)
+  sigma2_u <- sigma_u^2
+  sigma2_v <- sigma_v^2
+
+  sigma2 <- sigma2_u + sigma2_v
+  sigma <- sqrt(sigma2)
 
   if (deb) cat("Total of ", length(params), " parameters: \n",
                "Betas: ", paste(f_coeff), "\n",
@@ -63,21 +66,93 @@ ll_cs_hnorm <- function(params,
 
   N <- length(y)
 
-  lli <-
-    -log(pi/2) + # the const term
-    -log(sigma) +
-    +log(pnorm(-(epsilon * sqrt(sigma2_u) / sqrt(sigma2_v)) / sigma)) +
-    -0.5 * (epsilon^2) / (sigma2_u + sigma2_v)
+  lli <- 0.5*log(2/pi) -log(sigma) + log(pnorm(-(epsilon * sigma_u / sigma_v) / sigma)) - (epsilon^2) / (2*sigma2)
 
   ll <- sum(lli)
   if (deb) cat("Loglikelihood: ", ll,  "\n")
+  if (deb) print(summary(epsilon))
+  if (deb) print(summary(lli))
 
-  if (!is.finite(ll)) {
-    return(sum(!is.finite(lli))*1e100)
+  if (!is.finite(ll) && minmax == -1) {
+    # return(sum(!is.finite(lli))*1e100)
+    return(1e150)
   }
 
-  return(-ll)
+  return(minmax*ll)
 }
+
+if (require(compiler)) ll_cs_hnorm <- cmpfun(ll_cs_hnorm)
+
+# gradient function
+g_cs_hnorm_analytic <- function(params,
+                       indeces,
+                       y, X,
+                       CM = NULL,
+                       CV_u,
+                       CV_v,
+                       ineff,
+                       minmax,
+                       deb = F) {
+
+
+  if (deb) {
+    cat("Parameters: ", params)
+  }
+
+  f_coeff    <- params[              1 :indeces[1]]
+  cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
+  cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
+
+  sigma_u <- as.vector(exp(CV_u %*% cv_u_coeff))
+  sigma_v <- as.vector(exp(CV_v %*% cv_v_coeff))
+
+  sigma2_u <- sigma_u^2
+  sigma2_v <- sigma_v^2
+
+  sigma2 <- sigma2_u + sigma2_v
+  sigma <- sqrt(sigma2)
+
+  lambda <- sigma_u/sigma_v
+
+  eps <- as.vector(-ineff * (y - X %*% f_coeff))
+
+  N <- length(y)
+
+  sus <- sigma2_u/sigma2
+  svs <- sigma2_v/sigma2
+  epsigma <- eps/sigma
+  cdfnorm <- pnorm(lambda*epsigma)
+  lpdfnorm <- lambda*dnorm(epsigma)
+
+  g_f_coeff <- -ineff*(eps / sigma2 + lpdfnorm/(sigma*(1-cdfnorm))) %*% X
+  g_cv_u_coeff <- (-sus + sus*(epsigma)^2 - ((lpdfnorm)/(1-cdfnorm))*(epsigma)*(1 - sus)) %*% CV_u
+  g_cv_v_coeff <- (-svs + svs*(epsigma)^2 + ((lpdfnorm)/(1-cdfnorm))*(epsigma)*(1 + sus)) %*% CV_v
+
+  return(minmax*c(g_f_coeff, g_cv_u_coeff, g_cv_v_coeff))
+}
+
+if (require(compiler)) g_cs_hnorm_analytic <- cmpfun(g_cs_hnorm_analytic)
+
+# gradient function
+g_cs_hnorm_fd <- function(params,
+                          indeces,
+                          y, X,
+                          CV_u,
+                          CV_v,
+                          CM,
+                          ineff,
+                          minmax,
+                          deb) {
+  n <- length(params)
+  hh <- matrix(0, n, n)
+  diag(hh) <- .Machine$double.eps^(1/3)
+
+  sapply(1:n, function(i) {
+    (  ll_cs_exp(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
+         ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
+}
+
+if (require(compiler)) g_cs_hnorm_fd <- cmpfun(g_cs_hnorm_fd)
 
 # Jondrow et al. (1982) as in Parmeter-Kumbhakar
 u_cs_hnorm <- function(object, estimator) {

@@ -107,12 +107,15 @@ sfa.fit <- function(y,
                               cm = NULL,
                               cv_u = NULL,
                               cv_v = NULL),
+                    opt_strategy = 1,
+                    grad = "fd",
                     ll = NULL,
-                    nlopt = T,
-                    nlopt_bounds = NULL,
-                    nlopt_opts = NULL,
-                    optim_method = "L-BFGS-B",
+                    optim_method = "BFGS",
                     optim_control = NULL,
+                    maxLik_method = "NR",
+                    maxLik_control = NULL,
+                    nlopt_opts = NULL,
+                    nlopt_bounds = NULL,
                     deb = F, # TRUE for debug reports
                     debll = F) {
 
@@ -120,6 +123,7 @@ sfa.fit <- function(y,
   # ------ VALIDATE ARGUMENTS --------
 
   dist <- match.arg(dist)
+  # opt_strategy <- match.arg(opt_strategy)
 
   if (!(
     is.integer(ineff)
@@ -152,10 +156,11 @@ sfa.fit <- function(y,
     X    <- subset(X, cc)
     CV_u <- subset(CV_u, cc)
     CV_v <- subset(CV_v, cc)
-    CM   <- subset(CM, cc)
+    CM   <- if (dist == "tnorm") subset(CM, cc) else NULL
 
     missingness <- T
   } else missingness <- F
+
 
   # ---- INIT ----
 
@@ -241,10 +246,11 @@ sfa.fit <- function(y,
         coeff_f_n,      " X coefficient parameters, ", "\n",
         coeff_cm_num,   " CM coefficient parameters,", "\n",
         coeff_cv_u_num, " CV_u coefficient parameters,", "\n",
-        coeff_cv_v_num, " CV_v coefficient parameters,", "\n")
+        coeff_cv_v_num, " CV_v coefficient parameters,", "\n\n")
   }
 
-  if (deb) cat(str(CV_v))
+
+
   # ---- MODEL SPECIFICATION ----
 
   model_spec <- paste0(structure, "_",
@@ -261,6 +267,13 @@ sfa.fit <- function(y,
   lmfit <- lm(y ~ X - 1) # intercept is part of X already
   if (deb) print(summary(lmfit))
 
+  # set starting values for lnsigmas based on variance of OLS residuals
+  is_cvu_intercept <- intercept$cv_u || (is.matrix(CV_u) && all(CV_u[,1] == 1.0))
+  is_cvv_intercept <- intercept$cv_v || (is.matrix(CV_v) && all(CV_v[,1] == 1.0))
+  sigmasv <- log(2*var(lmfit$residuals)/(is_cvu_intercept + is_cvv_intercept))
+
+  if (deb & (is_cvu_intercept | is_cvv_intercept)) cat("Starting values for sigmas:", sigmasv, "\n")
+
   if (is.null(sv$f)) {
     sv$f <- lmfit$coefficients
     names(sv$f)[1:length(coeff_f_names)] <- coeff_f_names
@@ -274,12 +287,12 @@ sfa.fit <- function(y,
   } else sv$cm = NULL
 
   if (is.null(sv$cv_u)) {
-    sv$cv_u <- rep(5.0, coeff_cv_u_num)
+    sv$cv_u <- c(if (is_cvu_intercept) sigmasv, rep(0.0, coeff_cv_u_num-is_cvu_intercept))
     names(sv$cv_u) <- coeff_cv_u_names
   } # to-do: else check length
 
   if (is.null(sv$cv_v)) {
-    sv$cv_v <- rep(5.0, coeff_cv_v_num)
+    sv$cv_v <- c(if (is_cvv_intercept) sigmasv, rep(0.0, coeff_cv_v_num-is_cvv_intercept))
     names(sv$cv_v) <- coeff_cv_v_names
   } # to-do: else check length
 
@@ -289,26 +302,22 @@ sfa.fit <- function(y,
            sv$cv_v,
            sv$cm)
 
-  if (deb) cat("Starting values: ", svv)
-
-  if (is.null(ll)) {
-    ll_fn_call <- paste0("ll", "_", model_spec)
-  } else { # to-do: check existence of ll function given by user
-    ll_fn_call <- ll
-  }
+  if (deb) cat("Starting values: ", svv, "\n")
 
   if (deb) {
     print(head(X))
     print(head(CM))
     print(head(CV_u))
     print(head(CV_v))
-    print(ll_fn_call)
   }
 
+  # serve to likelihodd, gradient and predict functions to decompose the parameter vector
   indeces <- cumsum(c(coeff_f_n,
                       coeff_cv_u_num,
                       coeff_cv_v_num,
                       coeff_cm_num))
+
+  if (deb) cat("\nIndeces:", indeces, "\n")
 
   # validate parameter vector
   parcheck <- do.call(what = paste0("par_", model_spec, "_check"),
@@ -320,20 +329,45 @@ sfa.fit <- function(y,
                         CV_u = CV_u,
                         CV_v = CV_v,
                         CM = CM))
+
   if (deb & parcheck) cat("Parameters check OK.", "\n")
 
 
   # ------- MLE ----------
+
+  # likelihood function call
+  if (is.null(ll)) {
+    ll_fn_call <- paste0("ll", "_", model_spec)
+  } else { # to-do: check existence of ll function given by user
+    ll_fn_call <- ll
+  }
+  if (deb) print(ll_fn_call)
+
+  if (!is.null(grad)) {
+    g_fn_call <- eval(parse(text = paste0("g", "_", model_spec, "_", grad)))
+  } else {
+    g_fn_call <- NULL
+  }
+
+  # --------- NLOPTR -----------
   # optional first-step optimization with NLopt
-  if (nlopt) {
+  if (opt_strategy %in% c(3, 4)) {
     require(nloptr)
     if (!is.null(nlopt_bounds)) {
       if (length(nlopt_bounds$ub) == 1) ub <- rep(nlopt_bounds$ub, length(svv)) else ub <- nlopt_bounds$ub # to-do: check length
       if (length(nlopt_bounds$lb) == 1) lb <- rep(nlopt_bounds$lb, length(svv)) else lb <- nlopt_bounds$lb # to-do: check length
     } else ub = lb = NULL
 
+    if (deb) cat("NLOPT allgo is", nlopt_opts[["algorithm"]], "\n")
+
+    if (is.null(g_fn_call) & grepl("D_", nlopt_opts[["algorithm"]])) {
+      warning("Selected NLOPT optimization algorithm needs gradient function. The finite-difference approximation will used...")
+      g_fn_call <- gradient(fn = eval(parse(text = ll_fn_call)), par = svv)
+    }
+
     est1 <- nloptr(x0 = svv,
                    eval_f = eval(parse(text = ll_fn_call)),
+                   eval_grad_f = g_fn_call,
                    lb = lb, ub = ub,
                    opts = nlopt_opts,
                    y = y, # these parameters are passed to the likelihood function
@@ -343,6 +377,7 @@ sfa.fit <- function(y,
                    CV_u = CV_u,
                    CV_v = CV_v,
                    ineff = ineff,
+                   minmax = -1,
                    deb = debll)
 
     svv <- est1$solution
@@ -350,8 +385,12 @@ sfa.fit <- function(y,
     if (deb) print(est1)
   }
 
+  if (opt_strategy %in% c(1, 3)) {
+
+  # --------- OPTIM -----------
   est <- optim(par = svv,
                fn = eval(parse(text = ll_fn_call)),
+               gr = g_fn_call,
                method = optim_method,
                control = optim_control,
                hessian = T,
@@ -362,14 +401,38 @@ sfa.fit <- function(y,
                CV_u = CV_u,
                CV_v = CV_v,
                ineff = ineff,
+               minmax = -1,
                deb = debll)
+  } else {
+    require(maxLik)
+
+    est <- maxLik(start = svv,
+                  logLik = eval(parse(text = ll_fn_call)),
+                  grad = g_fn_call,
+                  method = maxLik_method,
+                  control = maxLik_control,
+                  y = y,# these parameters are passed to the likelihood function
+                  X = X,
+                  indeces = indeces,
+                  CM = CM,
+                  CV_u = CV_u,
+                  CV_v = CV_v,
+                  ineff = ineff,
+                  minmax = 1,
+                  deb = debll)
+
+  }
 
   if (deb) {
     cat(est$par, "\n")
     cat(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (!is.null(CM)) coeff_cm_names else NULL, "\n")
   }
 
-  names(est$par) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
+  if (opt_strategy %in% c(1, 3)) {
+    names(est$par) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
+  } else {
+    names(est$estimate) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
+  }
 
 
   # ---------- RETURN ------------
@@ -396,8 +459,8 @@ sfa.fit <- function(y,
                  cv_v_model     = cv_v_model,
                  coeff_cv_v     = coeff_cv_v,
                  indeces        = indeces,
-                 residuals      = as.vector(y - X %*% est$par[1:coeff_f_n]),
-                 parameters     = est$par,
+                 residuals      = if (opt_strategy %in% c(1, 3)) as.vector(y - X %*% est$par[1:coeff_f_n]) else as.vector(y - X %*% est$estimate[1:coeff_f_n]),
+                 parameters     = if (opt_strategy %in% c(1, 3)) est$par else est$estimate,
                  N              = ccn,
                  N_total        = length(y),
                  ineff          = ineff,
@@ -414,11 +477,11 @@ sfa.fit <- function(y,
                                        model_spec = model_spec,
                                        sv = sv,
                                        structure = structure),
-                 loglik         = -est$value,
-                 hessian        = -est$hessian,
+                 loglik         = if (opt_strategy %in% c(1, 3)) -est$value else est$maximum,
+                 hessian        = if (opt_strategy %in% c(1, 3)) -est$hessian else est$hessian,
                  lmfit          = lmfit,
                  opt            = est,
-                 nlopt          = if (nlopt) est1)
+                 nlopt          = if (opt_strategy %in% c(3, 4)) est1)
 
   attr(result$data, "missingness") <- missingness
   if (missingness) attr(result$data, "cc") <- cc

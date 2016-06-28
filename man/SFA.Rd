@@ -10,8 +10,9 @@
 sfa.fit(y, X, CM = NULL, CV_u = NULL, CV_v = NULL, ineff = -1L,
   dist = c("tnorm", "hnorm", "exp"), spec = NULL, intercept = list(f =
   TRUE, cm = TRUE, cv_u = TRUE, cv_v = TRUE), sv = list(f = NULL, cm = NULL,
-  cv_u = NULL, cv_v = NULL), ll = NULL, nlopt = T, nlopt_bounds = NULL,
-  nlopt_opts = NULL, optim_method = "L-BFGS-B", optim_control = NULL,
+  cv_u = NULL, cv_v = NULL), opt_strategy = 1, grad = "fd", ll = NULL,
+  optim_method = "BFGS", optim_control = NULL, maxLik_method = "NR",
+  maxLik_control = NULL, nlopt_opts = NULL, nlopt_bounds = NULL,
   deb = F, debll = F)
 
 \method{SFA}{formula}(formula, data = NULL, cm = ~1, cv_u = ~1,
@@ -56,17 +57,17 @@ SFA(object, ...)
 
 \item{ll}{allows custom log-likelihood function that will be MINIMIZED.}
 
-\item{nlopt}{logical. TRUE for using nloptr routines as a first step for MLE optimization}
-
-\item{nlopt_opts}{list of nloptr options.}
-
 \item{optim_method}{algorithm for (second-step) optimization.}
 
 \item{optim_control}{list of options for \code{optim()} routine.}
 
+\item{nlopt_opts}{list of nloptr options.}
+
 \item{deb}{debug mode (TRUE/FALSE).}
 
 \item{debll}{debug mode of log likelihood functions (TRUE/FALSE).}
+
+\item{nlopt}{logical. TRUE for using nloptr routines as a first step for MLE optimization}
 }
 \value{
 Returns object of the class SFA which is a list object consisting:

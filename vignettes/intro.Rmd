@@ -133,15 +133,19 @@ hist(ex2_efficiencies)
 
 model_ex2 <- SFA(y ~ x1 + x2,
                  data = data_ex1,
-                 dist = "tnorm",
+                 dist = "exp",
+                 form = "production",
                  # cm = ~ 0,  
-                 nlopt = T,
-                 nlopt_opts = list("algorithm" = "NLOPT_GN_MLSL", print_level = 1, maxeval = 1e4, xtol_rel = 1e-10,
+                 grad = "fd",
+                 opt_strategy = 1,
+                 nlopt_opts = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e4, xtol_rel = 1e-10,
                                    "local_opts" = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e3, xtol_rel = 1e-10)),
                  nlopt_bounds = list(lb = -5, ub = 60),
                  optim_method = "BFGS",
                  optim_control = list(trace = 1, maxeval = 10000),
-                 # deb = T#, debll = T
+                 maxLik_method = "NR",
+                 maxLik_control = list(printLevel = 3)
+                 #,deb = T#, debll = T
 )
 
 print(summary(model_ex2))

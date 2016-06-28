@@ -39,7 +39,8 @@ ll_cs_tnorm <- function(params,
                         CV_v,
                         CM,
                         ineff,
-                        deb) {
+                        minmax = -1,
+                        deb = F) {
 
   if (deb) {
     cat("Parameters: ", params)
@@ -50,11 +51,11 @@ ll_cs_tnorm <- function(params,
   cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
   cm_coeff   <- params[(indeces[3] + 1):indeces[4]]
 
-  sigma2_u <- as.vector(exp(CV_u %*% cv_u_coeff))
-  sigma2_v <- as.vector(exp(CV_v %*% cv_v_coeff))
+  sigma_u <- as.vector(exp(CV_u %*% cv_u_coeff))
+  sigma_v <- as.vector(exp(CV_v %*% cv_v_coeff))
 
-  sigma_u <- sqrt(sigma2_u)
-  sigma_v <- sqrt(sigma2_v)
+  sigma2_u <- sigma_u^2
+  sigma2_v <- sigma_v^2
 
   sigma2 <- sigma2_v + sigma2_u # variance of composite error term
   sigma <- sqrt(sigma2)
@@ -91,12 +92,34 @@ ll_cs_tnorm <- function(params,
   ll <- sum(lli)
   if (deb) cat("Loglikelihood: ", ll,  "\n")
 
-  if (!is.finite(ll)) {
+  if (!is.finite(ll) && minmax == -1) {
     return(sum(!is.finite(lli))*1e100)
   }
 
-  return(-ll)
+  return(minmax*ll)
 }
+if (require(compiler)) ll_cs_tnorm <- cmpfun(ll_cs_tnorm)
+
+# gradient function
+g_cs_tnorm_fd <- function(params,
+                       indeces,
+                       y, X,
+                       CV_u,
+                       CV_v,
+                       CM,
+                       ineff,
+                       minmax,
+                       deb = F) {
+  n <- length(params)
+  hh <- matrix(0, n, n)
+  diag(hh) <- .Machine$double.eps^(1/3)
+
+  sapply(1:n, function(i) {
+    (ll_cs_tnorm(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
+      ll_cs_tnorm(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
+}
+if (require(compiler)) g_cs_tnorm_fd <- cmpfun(g_cs_tnorm_fd)
+
 
 u_cs_tnorm <- function(object, estimator) {
   # extract sigmas from the model object

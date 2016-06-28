@@ -38,6 +38,7 @@ ll_cs_exp <- function(params,
                       CV_u,
                       CV_v,
                       ineff,
+                      minmax,
                       deb) {
 
   if (deb) {
@@ -48,11 +49,11 @@ ll_cs_exp <- function(params,
   cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
   cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
 
-  sigma2_u <- as.vector(exp(CV_u %*% cv_u_coeff))
-  sigma2_v <- as.vector(exp(CV_v %*% cv_v_coeff))
+  sigma_u <- as.vector(exp(CV_u %*% cv_u_coeff))
+  sigma_v <- as.vector(exp(CV_v %*% cv_v_coeff))
 
-  sigma_u <- sqrt(sigma2_u)
-  sigma_v <- sqrt(sigma2_v)
+  sigma2_u <- sigma_u^2
+  sigma2_v <- sigma_v^2
 
   if (deb) cat("Total of ", length(params), " parameters: \n",
                "Betas: ", paste(f_coeff), "\n",
@@ -69,12 +70,34 @@ ll_cs_exp <- function(params,
 
   ll <- sum(lli)
 
-  if (!is.finite(ll)) {
+  if (!is.finite(ll) && minmax == -1) {
     return(sum(!is.finite(lli))*1e100)
   }
 
-  return(-ll)
+  return(minmax*ll)
 }
+if (require(compiler)) ll_cs_exp <- cmpfun(ll_cs_exp)
+
+# gradient function
+g_cs_exp_fd <- function(params,
+                     indeces,
+                     y, X,
+                     CV_u,
+                     CV_v,
+                     CM,
+                     ineff,
+                     minmax,
+                     deb) {
+  n <- length(params)
+  hh <- matrix(0, n, n)
+  diag(hh) <- .Machine$double.eps^(1/3)
+
+  sapply(1:n, function(i) {
+    (  ll_cs_exp(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
+       ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
+}
+if (require(compiler)) g_cs_exp_fd <- cmpfun(g_cs_exp_fd)
+
 
 u_cs_exp <- function(object, estimator) {
 

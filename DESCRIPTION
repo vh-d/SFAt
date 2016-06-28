@@ -12,11 +12,12 @@ Imports:
   Rcpp (>= 0.12.5),
   lmtest,
   plm,
-  nloptr
+  maxLik
 Suggests:
   knitr,
   ggplot2,
   frontier,
+  nloptr
 VignetteBuilder:
   knitr
 LinkingTo:
