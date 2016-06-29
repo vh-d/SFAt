@@ -131,12 +131,13 @@ hist(ex2_efficiencies)
 
 ```{r formula method}
 
-model_ex2 <- SFA(y ~ x1 + x2,
+sfa1 <- SFA(y ~ x1 + x2,
                  data = data_ex1,
-                 dist = "exp",
+                 dist = "hnorm",
                  form = "production",
                  # cm = ~ 0,  
-                 grad = "fd",
+                 # grad = "fd",
+                 grad = "analytic",
                  opt_strategy = 1,
                  nlopt_opts = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e4, xtol_rel = 1e-10,
                                    "local_opts" = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e3, xtol_rel = 1e-10)),
@@ -148,8 +149,8 @@ model_ex2 <- SFA(y ~ x1 + x2,
                  #,deb = T#, debll = T
 )
 
-print(summary(model_ex2))
-print(lrtest(model_ex2))
+print(summary(sfa1))
+print(lrtest(sfa1))
 
 ```
 

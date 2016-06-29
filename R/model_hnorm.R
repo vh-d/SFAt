@@ -73,10 +73,10 @@ ll_cs_hnorm <- function(params,
   if (deb) print(summary(epsilon))
   if (deb) print(summary(lli))
 
-  if (!is.finite(ll) && minmax == -1) {
-    # return(sum(!is.finite(lli))*1e100)
-    return(1e150)
-  }
+  # if (!is.finite(ll) && minmax == -1) {
+  #   # return(sum(!is.finite(lli))*1e100)
+  #   return(1e150)
+  # }
 
   return(minmax*ll)
 }
@@ -122,11 +122,11 @@ g_cs_hnorm_analytic <- function(params,
   svs <- sigma2_v/sigma2
   epsigma <- eps/sigma
   cdfnorm <- pnorm(lambda*epsigma)
-  lpdfnorm <- lambda*dnorm(epsigma)
+  lpdfnorm <- lambda*dnorm(epsigma*lambda)
 
   g_f_coeff <- -ineff*(eps / sigma2 + lpdfnorm/(sigma*(1-cdfnorm))) %*% X
   g_cv_u_coeff <- (-sus + sus*(epsigma)^2 - ((lpdfnorm)/(1-cdfnorm))*(epsigma)*(1 - sus)) %*% CV_u
-  g_cv_v_coeff <- (-svs + svs*(epsigma)^2 + ((lpdfnorm)/(1-cdfnorm))*(epsigma)*(1 + sus)) %*% CV_v
+  g_cv_v_coeff <- (-svs + svs*(epsigma)^2 + ((lpdfnorm)/(1-cdfnorm))*(epsigma)*(1 + svs)) %*% CV_v
 
   return(minmax*c(g_f_coeff, g_cv_u_coeff, g_cv_v_coeff))
 }
@@ -145,11 +145,14 @@ g_cs_hnorm_fd <- function(params,
                           deb) {
   n <- length(params)
   hh <- matrix(0, n, n)
-  diag(hh) <- .Machine$double.eps^(1/3)
+  # heps <- .Machine$double.eps^(1/3)
+  heps <- 1e-12
+  diag(hh) <- heps
+  heps2 <- 2 * heps
 
   sapply(1:n, function(i) {
     (  ll_cs_exp(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
-         ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
+         ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / heps2})
 }
 
 if (require(compiler)) g_cs_hnorm_fd <- cmpfun(g_cs_hnorm_fd)
