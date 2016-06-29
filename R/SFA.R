@@ -17,7 +17,7 @@
 #' }
 #' @param dist distribution of inefficiency term ("hnorm", "exp", "tnorm").
 #' @param spec specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).
-#' @param sv list. starting values for:
+#' @param sv numeric vecor for all the necessary parameters or a list of optional starting values such as:
 #' \describe{
 #' \item{f}{frontier model coefficients}
 #' \item{cm}{starting values for conditional mean model parameters.}
@@ -274,33 +274,38 @@ sfa.fit <- function(y,
 
   if (deb & (is_cvu_intercept | is_cvv_intercept)) cat("Starting values for sigmas:", sigmasv, "\n")
 
-  if (is.null(sv$f)) {
-    sv$f <- lmfit$coefficients
-    names(sv$f)[1:length(coeff_f_names)] <- coeff_f_names
-  } # to-do: else check length
+  if (is.list(sv)) {
 
-  if (dist == "tnorm") {
-    if (is.null(sv$cm)) {
-      sv$cm <- rep(0.0, coeff_cm_num)
-      names(sv$cm) <- coeff_cm_names
+    if (is.null(sv$f)) {
+      sv$f <- lmfit$coefficients
+      names(sv$f)[1:length(coeff_f_names)] <- coeff_f_names
     } # to-do: else check length
-  } else sv$cm = NULL
 
-  if (is.null(sv$cv_u)) {
-    sv$cv_u <- c(if (is_cvu_intercept) sigmasv, rep(0.0, coeff_cv_u_num-is_cvu_intercept))
-    names(sv$cv_u) <- coeff_cv_u_names
-  } # to-do: else check length
+    if (dist == "tnorm") {
+      if (is.null(sv$cm)) {
+        sv$cm <- rep(0.0, coeff_cm_num)
+        names(sv$cm) <- coeff_cm_names
+      } # to-do: else check length
+    } else sv$cm = NULL
 
-  if (is.null(sv$cv_v)) {
-    sv$cv_v <- c(if (is_cvv_intercept) sigmasv, rep(0.0, coeff_cv_v_num-is_cvv_intercept))
-    names(sv$cv_v) <- coeff_cv_v_names
-  } # to-do: else check length
+    if (is.null(sv$cv_u)) {
+      sv$cv_u <- c(if (is_cvu_intercept) sigmasv, rep(0.0, coeff_cv_u_num-is_cvu_intercept))
+      names(sv$cv_u) <- coeff_cv_u_names
+    } # to-do: else check length
 
-  # concatenate all coefficients and model parameters into a single vector for the optimization routine
-  svv <- c(sv$f,
-           sv$cv_u,
-           sv$cv_v,
-           sv$cm)
+    if (is.null(sv$cv_v)) {
+      sv$cv_v <- c(if (is_cvv_intercept) sigmasv, rep(0.0, coeff_cv_v_num-is_cvv_intercept))
+      names(sv$cv_v) <- coeff_cv_v_names
+    } # to-do: else check length
+
+    # concatenate all coefficients and model parameters into a single vector for the optimization routine
+    svv <- c(sv$f,
+             sv$cv_u,
+             sv$cv_v,
+             sv$cm)
+  } else {
+    svv <- sv$all # to-do: check length
+  }
 
   if (deb) cat("Starting values: ", svv, "\n")
 
@@ -387,22 +392,22 @@ sfa.fit <- function(y,
 
   if (opt_strategy %in% c(1, 3)) {
 
-  # --------- OPTIM -----------
-  est <- optim(par = svv,
-               fn = eval(parse(text = ll_fn_call)),
-               gr = g_fn_call,
-               method = optim_method,
-               control = optim_control,
-               hessian = T,
-               y = y,# these parameters are passed to the likelihood function
-               X = X,
-               indeces = indeces,
-               CM = CM,
-               CV_u = CV_u,
-               CV_v = CV_v,
-               ineff = ineff,
-               minmax = -1,
-               deb = debll)
+    # --------- OPTIM -----------
+    est <- optim(par = svv,
+                 fn = eval(parse(text = ll_fn_call)),
+                 gr = g_fn_call,
+                 method = optim_method,
+                 control = optim_control,
+                 hessian = T,
+                 y = y,# these parameters are passed to the likelihood function
+                 X = X,
+                 indeces = indeces,
+                 CM = CM,
+                 CV_u = CV_u,
+                 CV_v = CV_v,
+                 ineff = ineff,
+                 minmax = -1,
+                 deb = debll)
   } else {
     require(maxLik)
 

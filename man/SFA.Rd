@@ -47,7 +47,7 @@ SFA(object, ...)
 \item{cv_v}{TRUE if the intercept should be added to the conditional inefficiency variance formula.}
 }}
 
-\item{sv}{list. starting values for:
+\item{sv}{numeric vecor for all the necessary parameters or a list of optional starting values such as:
 \describe{
 \item{f}{frontier model coefficients}
 \item{cm}{starting values for conditional mean model parameters.}
