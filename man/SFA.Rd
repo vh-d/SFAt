@@ -35,7 +35,7 @@ SFA(object, ...)
 
 \item{ineff}{-1 (or 1) for production (or cost) function, where inefficiency decreases (or increases) the total output (or costs).}
 
-\item{dist}{distribution of inefficiency term ("hnorm", "exp", "tnorm").}
+\item{dist}{distribution of inefficiency term (either "hnorm", "exp" or "tnorm").}
 
 \item{spec}{specifies what model of endogeneous inefficiency term should be used (currently only bc95 for cross-section implemented).}
 
@@ -55,19 +55,23 @@ SFA(object, ...)
 \item{cv_v}{starting values for conditional variance of the symmetric term model parameters.}
 }}
 
+\item{opt_strategy}{integer from 1 -- 4, see Details}
+
 \item{ll}{allows custom log-likelihood function that will be MINIMIZED.}
 
 \item{optim_method}{algorithm for (second-step) optimization.}
 
 \item{optim_control}{list of options for \code{optim()} routine.}
 
+\item{maxLik_method}{algorithm for (second-step) optimization.}
+
+\item{maxLik_control}{list of options for \code{maxLik()} routine.}
+
 \item{nlopt_opts}{list of nloptr options.}
 
 \item{deb}{debug mode (TRUE/FALSE).}
 
 \item{debll}{debug mode of log likelihood functions (TRUE/FALSE).}
-
-\item{nlopt}{logical. TRUE for using nloptr routines as a first step for MLE optimization}
 }
 \value{
 Returns object of the class SFA which is a list object consisting:
@@ -123,14 +127,14 @@ Starting values are by default coefficients of a linear (OLS) model estimated du
 
 \section{Optimization}{
 
-Optimization of log-likelihood functions is currently done by R's default \code{optim()} function. Notice that the choice of optimization method may have significant impact on the results and it is highly recommanded to experiment with different optimization algorithms. Recommended are:
-
-\describe{
-\item{SANN}{In general, this is the most robust method. It can be slow with larger datasets or more complex models but the results tend to be better if parameters \code{maxit, tmax, temp} are set correctly (maxit > 1e4+, tmax = 15, temp = 1).}
-\item{L-BFGS-B}{Fastest, but can crashes on complex models (infinite log-likelihood values etc...). If starting values are set well, it leads to the same results as SANN but much faster.}
-\item{BFGS}{Fast, but can crashes on complex models (infinite log-likelihood values etc...).}
+There are serveral optimizaion strategies for maximizing of log-likelihood functions available:
+\itemize{
+\item{1} \code{optim()} function,
+\item{2} using the \code{maxLik()} from maxLik package if available,
+\item{3} two-step strategy usign any of the wide selection of algorithms from the nloptr package (if available) for first step optimization and \code{optim()} in the second step,
+\item{4} two-step strategy usign nloptr package (if available) for first step optimization and \code{maxLik()} in the second step.
 }
-See help for \code{optim()} function.
+Notice that the choice of optimization method may have significant impact on the results and it is highly recommanded to experiment with different optimization algorithms. See the relevant packages and methods for more details.
 }
 \examples{
 See vignettes.
