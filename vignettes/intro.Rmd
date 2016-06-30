@@ -24,6 +24,7 @@ Lets generate some randomly simulated production data,
 
 ```{r}
 data_ex1 <- as.data.frame(sim_data_cs(1000, 
+                                      ineff = -1, # production function
                                       x_coeff = c(50, 4, 2), 
                                       z_coeff = c(20), 
                                       sigma_u = 10, sigma_v = 5))
