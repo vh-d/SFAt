@@ -70,9 +70,9 @@ ll_cs_exp <- function(params,
 
   ll <- sum(lli)
 
-  if (!is.finite(ll) && minmax == -1) {
-    return(sum(!is.finite(lli))*1e100)
-  }
+  # if (!is.finite(ll) && minmax == -1) {
+  #   return(sum(!is.finite(lli))*1e100)
+  # }
 
   return(minmax*ll)
 }
@@ -98,6 +98,44 @@ g_cs_exp_fd <- function(params,
 }
 if (require(compiler)) g_cs_exp_fd <- cmpfun(g_cs_exp_fd)
 
+g_cs_exp_analytic <- function(params,
+                              indeces,
+                              y, X,
+                              CM = NULL,
+                              CV_u,
+                              CV_v,
+                              ineff,
+                              minmax,
+                              deb = F) {
+
+  if (deb) {
+    cat("Parameters: ", params)
+  }
+
+  f_coeff    <- params[              1 :indeces[1]]
+  cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
+  cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
+
+  sigma_u <- as.vector(exp(CV_u %*% cv_u_coeff))
+  sigma_v <- as.vector(exp(CV_v %*% cv_v_coeff))
+
+  sigma2_u <- sigma_u^2
+  sigma2_v <- sigma_v^2
+
+  eps <- as.vector(-ineff * (y - X %*% f_coeff))
+
+  N <- length(y)
+
+  exp1 <- (-eps - sigma2_v/sigma_u)/sigma_v
+  pdfnorm <- dnorm(exp1)
+  cdfnorm <- pnorm(exp1)
+
+  g_f_coeff <- -ineff*(pdfnorm/cdfnorm/sigma_v - 1/sigma_u) %*% X
+  g_cv_u_coeff <- (-1 - sigma2_v/sigma2_u + (pdfnorm/cdfnorm) * sigma_v/sigma_u - eps/sigma_u) %*% CV_u
+  g_cv_v_coeff <- (sigma2_v/sigma2_u + pdfnorm/cdfnorm * (eps/sigma_v - sigma_v/sigma_u)) %*% CV_v
+
+  return(minmax*c(g_f_coeff, g_cv_u_coeff, g_cv_v_coeff))
+}
 
 u_cs_exp <- function(object, estimator) {
 

@@ -92,9 +92,9 @@ ll_cs_tnorm <- function(params,
   ll <- sum(lli)
   if (deb) cat("Loglikelihood: ", ll,  "\n")
 
-  if (!is.finite(ll) && minmax == -1) {
-    return(sum(!is.finite(lli))*1e100)
-  }
+  # if (!is.finite(ll) && minmax == -1) {
+  #   return(sum(!is.finite(lli))*1e100)
+  # }
 
   return(minmax*ll)
 }
