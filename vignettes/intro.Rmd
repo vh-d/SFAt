@@ -134,7 +134,7 @@ hist(ex2_efficiencies)
 
 sfa1 <- SFA(y ~ x1 + x2,
                  data = data_ex1,
-                 dist = "hnorm",
+                 dist = "tnorm",
                  form = "production",
                  # cm = ~ 0,  
                  # grad = "fd",

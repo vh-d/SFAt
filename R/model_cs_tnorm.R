@@ -100,6 +100,58 @@ ll_cs_tnorm <- function(params,
 }
 if (require(compiler)) ll_cs_tnorm <- cmpfun(ll_cs_tnorm)
 
+
+g_cs_tnorm_analytic <- function(params,
+                                indeces,
+                                y, X,
+                                CV_u,
+                                CV_v,
+                                CM,
+                                ineff,
+                                minmax = -1,
+                                deb = F) {
+
+  f_coeff    <- params[             1:indeces[1]]
+  cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
+  cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
+  cm_coeff   <- params[(indeces[3] + 1):indeces[4]]
+
+  sigma_u <- as.vector(exp(CV_u %*% cv_u_coeff))
+  sigma_v <- as.vector(exp(CV_v %*% cv_v_coeff))
+
+  sigma2_u <- sigma_u^2
+  sigma2_v <- sigma_v^2
+
+  sigma2 <- sigma2_v + sigma2_u # variance of composite error term
+  sigma <- sqrt(sigma2)
+  sigma_ast <- sigma_u * sigma_v / sigma
+
+  N <- length(y)
+
+  Zdelta <- as.vector(CM %*% cm_coeff) # fitted means of inefficiency term
+
+  eps <- -ineff*as.vector(y - (X %*% f_coeff)) # composite error terms
+
+  mu_ast <- (sigma2_v*Zdelta - sigma2_u*eps) / sigma2
+
+  pdfnorm1 <- dnorm(mu_ast / sigma_ast)
+  cdfnorm1 <- pnorm(mu_ast / sigma_ast)
+
+  pdfnorm2 <- dnorm(Zdelta / sigma_u)
+  cdfnorm2 <- pnorm(Zdelta / sigma_u)
+
+  g_f_coeff <- -ineff*(pdfnorm1/cdfnorm1 * sigma_u/(sigma*sigma_v) + (eps + Zdelta)/sigma2) %*% X
+  g_cv_u_coeff <- (-sigma2_u/sigma2 + (sigma2_u * (eps + Zdelta)^2) / (sigma2^2) + ((pdfnorm1/cdfnorm1) * (-2*sigma2_u*eps    - (sigma2_u/sigma2 + 1) * (sigma2_v*Zdelta - sigma2_u*eps))/(sigma*sigma_u*sigma_v)) + pdfnorm2/cdfnorm2 * Zdelta/sigma_u) %*% CV_u
+  g_cv_v_coeff <- (-sigma2_v/sigma2 + (sigma2_v * (eps + Zdelta)^2) / (sigma2^2) + ((pdfnorm1/cdfnorm1) * (+2*sigma2_v*Zdelta - (sigma2_v/sigma2 + 1) * (sigma2_v*Zdelta - sigma2_u*eps))/(sigma*sigma_u*sigma_v))) %*% CV_v
+  g_cm_coeff <-   (-1/sigma2 * (eps + Zdelta) + pdfnorm1/cdfnorm1 * sigma2_v / (sigma*sigma_u*sigma_v) - pdfnorm2/cdfnorm2 * 1/sigma_u) %*% CM
+
+  # return(minmax*c(g_f_coeff, g_cv_u_coeff, g_cv_v_coeff, g_cm_coeff))
+  return(minmax*c(g_f_coeff,
+                  g_cv_u_coeff,
+                  g_cv_v_coeff,
+                  g_cm_coeff))
+}
+
 # gradient function
 g_cs_tnorm_fd <- function(params,
                        indeces,
