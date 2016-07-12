@@ -598,6 +598,7 @@ summary.SFA <- function(object) {
 
   ans <- list(call = object$call,
               N = object$N,
+              N_total = object$N_total,
               loglik = object$loglik,
               parameters = object$parameters,
               coefficients = coef_table,
@@ -641,7 +642,7 @@ print.summary.SFA <- function(object) {
       "=========================", sep = "\n")
 
   cat(if (object$call$structure == "panel") "Panel" else "Cross-section", "data.\n")
-  cat("Total observations:", object$N, if (object$call$structure == "panel") "in cross-section." else NULL, "\n")
+  cat("N:", object$N, if (object$N != object$N_total) paste0("(", object$N_total - object$N, " dropped due to missing values)") else NULL, "\n")
   cat("Log-likelihood:", object$loglik, "\n")
   cat("\n", sep = "")
   print(round(outtable, digits = 4), digits = 4, nsmall = 3, na.print = "", quote = F)
