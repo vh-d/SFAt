@@ -5,7 +5,7 @@ This package provides a collection of methods for doing SFA (Stochastic frontier
 
 Its development was inspired by some existing software for SFA (R packages *frontier*, *sfa* and *Benchmarking*, *Stata* commands `frontier`, `xtfrontier` and `sfcross`/`sfpanel`).
 
-**This package is in beta version. It is functional but the interface is under development. Therefor it is not ready for regular use.**
+**This package is in beta version. It is mostly functional but the interface and some features are still under development. Therefore it is not ready for regular use yet.**
 
 Contributions and suggestions are welcome!
 
@@ -44,5 +44,7 @@ To-do:
     - [x] fixed effects in conditional variance equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
 - [x] explore `nloptr`, and `maxLik` packages for MLE optimizations  
 - [ ] explore `optimx` package for MLE optimization  
-- [ ] add analytic gradient functions
+- [x] add analytic gradient functions
 - [ ] rewrite likelihood functions in C++ (using Rcpp), altough the speed increase is small based on first experiments
+- [ ] LR test for two SFA objects
+- [ ] normal/gamma model
