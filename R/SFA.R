@@ -436,7 +436,7 @@ sfa.fit <- function(y,
   }
 
   if (opt_strategy %in% c(1, 3)) {
-    names(est$par) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
+    names(est$par)      <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
   } else {
     names(est$estimate) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
   }
@@ -452,11 +452,19 @@ sfa.fit <- function(y,
     CM <- oCM
   }
 
-  coeff_frontier <- est$par[1 : (indeces[1])]
-  coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
-  coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
-  coeff_cm <-  if (dist == "tnorm")
-    est$par[(1 + indeces[3]) : (indeces[4])]
+  if (opt_strategy %in% c(1, 3)) {
+    coeff_frontier <- est$par[1 : (indeces[1])]
+    coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
+    coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
+    coeff_cm <- if (dist == "tnorm")
+                      est$par[(1 + indeces[3]) : (indeces[4])]
+  } else {
+    coeff_frontier <- est$estimate[1 : (indeces[1])]
+    coeff_cv_u     <- est$estimate[(1 + indeces[1]) : (indeces[2])]
+    coeff_cv_v     <- est$estimate[(1 + indeces[2]) : (indeces[3])]
+    coeff_cm <- if (dist == "tnorm")
+                      est$estimate[(1 + indeces[3]) : (indeces[4])]
+  }
 
   result <- list(coeff_frontier = coeff_frontier,
                  cm_model       = cm_model,
