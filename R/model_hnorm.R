@@ -161,12 +161,12 @@ if (require(compiler)) g_cs_hnorm_fd <- cmpfun(g_cs_hnorm_fd)
 u_cs_hnorm <- function(object, estimator) {
 
    # extract sigmas from the model object
-  sigma2_u <- as.vector(exp(object$data$CV_u %*% object$coeff_cv_u))
-  sigma2_v <- as.vector(exp(object$data$CV_v %*% object$coeff_cv_v))
+  sigma_u <- as.vector(exp(object$data$CV_u %*% object$coeff_cv_u))
+  sigma_v <- as.vector(exp(object$data$CV_v %*% object$coeff_cv_v))
 
   # derive the rest of the parameters
-  sigma_u <- sqrt(sigma2_u)
-  sigma_v <- sqrt(sigma2_v)
+  sigma2_u <- sigma_u^2
+  sigma2_v <- sigma_v^2
 
   sigma2 <- sigma2_u + sigma2_v
 
