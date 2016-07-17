@@ -630,8 +630,8 @@ print.summary.SFA <- function(object) {
   head_cv_v <- head_cv_u
   if (!is.null(object$coefficients_cm)) head_mu <- head_cv_u
 
-  row.names(head_cv_u) <- "log(sigma2_u):"
-  row.names(head_cv_v) <- "log(sigma2_v):"
+  row.names(head_cv_u) <- "log(sigma_u):"
+  row.names(head_cv_v) <- "log(sigma_v):"
   if (!is.null(object$coefficients_cm)) row.names(head_mu) <- "mu:"
 
   row.names(object$coefficients_cv_u) <- paste("  ", row.names(object$coefficients_cv_u))
