@@ -578,7 +578,7 @@ SFA <- function(object, ...) {
 #' @export
 summary.SFA <- function(object) {
 
-  coef_sd <- sqrt(-diag(solve(object$hessian, tol = 100*.Machine$double.xmin)))
+  coef_sd <- sqrt(-diag(solve(object$hessian)))
   coef_tstats <- object$parameters/coef_sd
   coef_pvalues <- 2 * pt(q = abs(coef_tstats),
                          df = object$N - length(object$parameters),
