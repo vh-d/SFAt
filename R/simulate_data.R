@@ -8,12 +8,12 @@
 #' @param aslist TRUE/FALSE to return list or array
 #' @export
 sim_data_cs <- function(N = 500,
-                     x_coeff = c(10, 6, 3),
-                     z_coeff = c(3, 1.5, 0.5),
-                     sigma_u = 2,
-                     sigma_v = 3,
-                     ineff   = -1,
-                     aslist  = F) {
+                        x_coeff = c(10, 6, 3),
+                        z_coeff = c(3, 1.5, 0.5),
+                        sigma_u = 2,
+                        sigma_v = 3,
+                        ineff   = -1,
+                        aslist  = F) {
 
   x_ncols <- length(x_coeff) - 1
   z_ncols <- length(z_coeff) - 1
@@ -42,8 +42,8 @@ sim_data_cs <- function(N = 500,
                          mean  = x,
                          lower = 0,
                          sd    = sigma_u)
-                  }
-                )
+                }
+    )
   } else {
 
     u <- rtnorm(N,
@@ -158,25 +158,16 @@ sim_data_panel <- function(k = 20, # number of individuals - cross section
     return(cbind(y, X, Z, u, v, eps))
 }
 
-ar1 <- function(mui, t, ar_coeff) {
-  ret <- c(mui, rep(0.0, t-1))
-  for (i in 2:10) {
-    ret[i] <- rtnorm(1, ret[i-1]*ar_coeff, sd = 2, 0)
-  }
-
-  return(ret)
-}
-
-
 #' @export
 sim_data_panel_ar <- function(k           = 20, # number of individuals - cross section
                               t           = 10, # number of observations per individual
                               x_mean      = 10,
                               x_sd        = 1,
-                              z_mean      = 10,
+                              z_mean      = 0,
                               z_sd        = 1,
                               x_coeff     = c(10, 6, 3),
-                              z_intercept = 5,
+                              z_coeff     = c(0.5, 0.1),
+                              fe          = 5,
                               ar_coeff    = 0.9,
                               sigma_u     = 2, # variance of the inefficiency term
                               sigma_v     = 3, # variance of the random noise
@@ -186,11 +177,12 @@ sim_data_panel_ar <- function(k           = 20, # number of individuals - cross 
   N <- t * k
 
   x_ncols <- length(x_coeff) - 1
+  z_ncols <- length(z_coeff)
 
   # random explanatory data
   X <- matrix(rtnorm(n     = N*x_ncols,
                      mean  = x_mean,
-                     sd    = z_sd,
+                     sd    = x_sd,
                      lower = 0),
               nrow = N,
               ncol = x_ncols)
@@ -200,8 +192,34 @@ sim_data_panel_ar <- function(k           = 20, # number of individuals - cross 
   # random exogeneous data
 
   # intercept for each individual (cross section)
-  mu <- rtnorm(k, z_intercept, 3)
-  u <- unlist(lapply(mu, ar1, t = t, ar_coeff = ar_coeff))
+  mu <- rtnorm(k, fe, 3)
+
+  if (z_ncols > 0) {
+
+    Z <- matrix(rnorm(n    = N*z_ncols,
+                      mean = z_mean,
+                      sd   = z_sd),
+                nrow = N,
+                ncol = z_ncols)
+    colnames(Z) <- paste0("z", 1:z_ncols)
+
+  } else {
+    Z <- 0
+    z_coeff <- 0
+  }
+
+  u <- rep(0.0, N)
+
+  for (i in 1:k) {
+    u[(i-1)*t + 1] <- mu[i]
+    for (j in 2:t) {
+      current    <- (i-1)*t + j
+      umean      <- u[current - 1]*ar_coeff + z_coeff %*% Z[current, ]
+      u[current] <- rtnorm(n = 1, mean = umean, sd = 2, lower = 0)
+    }
+  }
+
+  # matrix of panel data indices
   K <- cbind(k = rep(1:k, each = t), t = rep(1:t, times = k))
 
   # error terms
@@ -214,7 +232,7 @@ sim_data_panel_ar <- function(k           = 20, # number of individuals - cross 
   y <- as.vector( cbind(1, X) %*% x_coeff) + eps
 
   if (aslist) {
-    return(list(y = y, X = X, Z = NULL, K = K,
+    return(list(y = y, X = X, Z = Z, K = K,
                 u = u, v = v, eps = eps,
                 N = N, t = t, k = k, mu = mu))
   } else
