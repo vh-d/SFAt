@@ -25,4 +25,3 @@ panel.sfa.fit(y, X, K = NULL, ineff = -1L, spec = c("css90"), deb = F,
 \description{
 fit SFA models on panel data
 }
-

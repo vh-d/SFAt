@@ -9,4 +9,3 @@
 \description{
 LR test for SFA class
 }
-

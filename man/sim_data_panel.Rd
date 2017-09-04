@@ -28,4 +28,3 @@ sim_data_panel(k = 20, t = 10, x_mean = 10, x_sd = 1, z_mean = 10,
 \description{
 generate simulated panel data for testing purposes
 }
-

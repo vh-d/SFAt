@@ -12,4 +12,3 @@
 \description{
 test statistics for SFA model
 }
-

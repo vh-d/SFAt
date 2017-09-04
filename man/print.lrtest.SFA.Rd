@@ -9,4 +9,3 @@
 \description{
 Print LR test results for SFA class
 }
-

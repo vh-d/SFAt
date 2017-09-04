@@ -9,4 +9,3 @@ rtnorm(n = 1, mean = 0, sd = 1, lower = -Inf, upper = Inf)
 \description{
 draw random values from truncated normal distribution
 }
-

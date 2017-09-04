@@ -9,4 +9,3 @@
 \description{
 compute efficiency for SFA models
 }
-

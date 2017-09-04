@@ -10,4 +10,3 @@ This package provides a collection of methods for doing SFA (Stochastic frontier
 It was inspired by some existing software for SFA (R packages frontier, sfa and Benchmarking, STATA commands frontier, xtfrontier and sfcross/sfpanel) but it aims to be
 more comprehansive, modular/extendable and open (open source).
 }
-

@@ -10,4 +10,3 @@
 \description{
 predict function for SFA models
 }
-

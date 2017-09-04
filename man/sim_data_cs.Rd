@@ -25,4 +25,3 @@ sim_data_cs(N = 500, x_coeff = c(10, 6, 3), z_coeff = c(3, 1.5, 0.5),
 \description{
 generate simulated cross-section data for testing purposes
 }
-

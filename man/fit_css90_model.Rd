@@ -9,4 +9,3 @@ fit_css90_model(y, X, K, ineff, deb = T)
 \description{
 Cornwell, Schmidt, and Sickles (1990) model
 }
-

@@ -15,4 +15,3 @@ Print summary for SFA objects.
 \details{
 Prints table of summary statistics for SFA model fitted by \code{sfa.fit} funtion.
 }
-
