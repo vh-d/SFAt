@@ -89,6 +89,14 @@ ll_cs_tnorm <- function(params,
   lli <- -0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
                   log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u))
 
+  if (deb) cat("Misbehaving loglikelihood contributions: ", "\n",
+               which(!is.finite(lli)), "\n",
+               lli[!is.finite(lli)],  "\n")
+
+  if (deb) cat("Suspicious loglikelihood contributions: ", "\n",
+               which(lli < quantile(lli, 0.05)), "\n",
+               lli[lli < quantile(lli, 0.05)],  "\n")
+
   ll <- sum(lli)
   if (deb) cat("Loglikelihood: ", ll,  "\n")
 
