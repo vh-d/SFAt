@@ -272,7 +272,7 @@ sfa.fit <- function(y,
   # set starting values for lnsigmas based on variance of OLS residuals
   is_cvu_intercept <- intercept$cv_u || (is.matrix(CV_u) && all(CV_u[,1] == 1.0))
   is_cvv_intercept <- intercept$cv_v || (is.matrix(CV_v) && all(CV_v[,1] == 1.0))
-  sigmasv <- log(2*var(lmfit$residuals)/(is_cvu_intercept + is_cvv_intercept))
+  sigmasv <- max(0.1, log(2*var(lmfit$residuals)/(is_cvu_intercept + is_cvv_intercept)))
 
   if (deb & (is_cvu_intercept | is_cvv_intercept)) cat("Starting values for sigmas:", sigmasv, "\n")
 
