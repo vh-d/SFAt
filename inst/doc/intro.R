@@ -1,38 +1,15 @@
----
-title: "Intro to SFAplus package"
-author: "Vaclav Hausenblas"
-date: "2017-09-09"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-
-```{r Init}
+## ----Init----------------------------------------------------------------
 require(SFAt)
-```
 
-
-## Basic SFA models
-
-### Example dataset
-
-Lets generate some randomly simulated production data,
-
-```{r}
+## ------------------------------------------------------------------------
 data_ex1 <- as.data.frame(sim_data_cs(1000, 
                                       ineff = -1, # production function
                                       x_coeff = c(50, 4, 2), 
                                       z_coeff = c(20), 
                                       sigma_u = 10, sigma_v = 3))
 
-```
 
-and explore the production data and simulated inefficiency term.
-
-```{r}
+## ------------------------------------------------------------------------
 # require(GGally)
 # ggpairs(dtDT)
 
@@ -41,11 +18,8 @@ hist(data_ex1$y)
 hist(data_ex1$u)
 hist(data_ex1$eps)
 
-```
 
-## SFA -- normal/t-normal model
-
-```{r}
+## ------------------------------------------------------------------------
 model_ex1 <- sfa.fit(y = data_ex1$y,
                      X = cbind(a = data_ex1$x1, b = data_ex1$x2),
                      CM = NULL,   
@@ -56,42 +30,30 @@ model_ex1 <- sfa.fit(y = data_ex1$y,
 
 print(summary(model_ex1))
 print(lrtest(model_ex1))
-```
 
-
-```{r}
+## ------------------------------------------------------------------------
 ineff_fit <- inefficiencyTerm(model_ex1, estimator = "JLMS")
 hist(ineff_fit)
-```
 
-Check for separation of frontier and actual production data
-```{r}
+## ------------------------------------------------------------------------
 yhat <- predict(model_ex1, type = "frontier")
 hist(yhat,       xlim = c(0, max(data_ex1$y)))
 hist(data_ex1$y, xlim = c(0, max(data_ex1$y)))
-```
 
-```{r}
+## ------------------------------------------------------------------------
 hist(inefficiencyTerm(model_ex1, estimator = "JLMS"))
-```
 
-```{r}
+## ------------------------------------------------------------------------
 hist(efficiency(model_ex1))
-```
 
-## SFA model with endogenous inefficiency mean 
-
-### Generate random cross-section dataset
-```{r}
+## ------------------------------------------------------------------------
 data_ex2_cm <- as.data.frame(sim_data_cs(1000, 
                                          x_coeff = c(50, 4, 2), 
                                          z_coeff = c(20, -2, 2), 
                                          sigma_u = 10, sigma_v = 5))
 
-```
 
-### Fit BC95 model
-```{r}
+## ------------------------------------------------------------------------
 
 model_ex2 <- sfa.fit(y = data_ex2_cm$y,
                      X = cbind(a = data_ex2_cm$x1, b = data_ex2_cm$x2),
@@ -107,29 +69,22 @@ model_ex2 <- sfa.fit(y = data_ex2_cm$y,
 # print(model_ex2$coeff_cv_v)
 print(summary(model_ex2))
 print(lrtest(model_ex2))
-```
 
-### Fitted inefficiency term ($E(u_i|\epsilon_i)$)
-
-```{r}
+## ------------------------------------------------------------------------
 ex2_ineff_term <- predict(model_ex2, 
                           type = "inefficiency", 
                           estimator = "JLMS")
 
 hist(ex2_ineff_term)
-```
 
-### Fitted efficiency (%)
-```{r}
+## ------------------------------------------------------------------------
 ex2_efficiencies <- predict(model_ex2, 
                             type = "efficiency", 
                             estimator = "JLMS")
 
 hist(ex2_efficiencies)
-```
 
-
-```{r formula method}
+## ----formula method------------------------------------------------------
 
 sfa1 <- SFA(y ~ x1 + x2,
             data = data_ex1,
@@ -152,5 +107,4 @@ sfa1 <- SFA(y ~ x1 + x2,
 print(summary(sfa1))
 print(lrtest(sfa1))
 
-```
 

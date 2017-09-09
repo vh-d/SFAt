@@ -1,58 +1,30 @@
----
-title: "SFAt compared to other existing R packages for SFA"
-author: "Vaclav Hausenblas"
-date: "2016-04-01"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r Init}
+## ----Init----------------------------------------------------------------
 require(SFAt)
-```
 
-### Example dataset
-
-Lets generate some randomly simulated production data...
-
-```{r Simulate data}
+## ----Simulate data-------------------------------------------------------
 
 EX1 <- as.data.frame(sim_data_cs(500))
 
-```
 
-and explore the production data and simulated inefficiency term.
-
-```{r Scatter plot matrix, fig.width = 10, fig.height = 10}
+## ----Scatter plot matrix, fig.width = 10, fig.height = 10----------------
 # require(GGally)
 # ggpairs(dtDT)
 
 plot(EX1)
-```
 
-```{r Plot individual variables}
+## ----Plot individual variables-------------------------------------------
 hist(EX1$y)
 hist(EX1$u)
 hist(EX1$eps)
 
-```
 
-## OLS model
-
-We might be interested in simple OLS model for LR test (and starting values of parameters).
-
-```{r OSL model}
+## ----OSL model-----------------------------------------------------------
 
 lmfit <- lm(y ~ x1 + x2 + z1 + z2, data = EX1)
 summary(lmfit)
 
-```
 
-## SFA model
-
-```{r SFAt model}
+## ----SFAt model----------------------------------------------------------
 sfat <- SFAt::sfa.fit(y = EX1$y,
                      X = as.matrix(EX1[, c("x1", "x2")]),
                      CM = as.matrix(EX1[, c("z1", "z2")]),
@@ -62,12 +34,8 @@ sfat <- SFAt::sfa.fit(y = EX1$y,
                      optim_control = list(maxit = 3e4, trace = T)
 )
 summary(sfat)
-```
 
-
-### benchmark with frontier package methods
-
-```{r frontier package}
+## ----frontier package----------------------------------------------------
 require(frontier)
 
 frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
@@ -77,11 +45,8 @@ frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
 print(summary(frontest))
 print(lrtest(frontest))
 
-```
 
-## Example 2
-
-```{r SFAt BC95}
+## ----SFAt BC95-----------------------------------------------------------
 data("front41Data")
 
 sfa2 <- SFAt::sfa.fit(y = log(front41Data$output), 
@@ -93,15 +58,12 @@ sfa2 <- SFAt::sfa.fit(y = log(front41Data$output),
                       deb = F)
 
 print(summary(sfa2))
-```
 
-
-```{r frontier package BC95}
+## ----frontier package BC95-----------------------------------------------
 sfa2_front <- frontier::sfa( log( output ) ~ log( capital ) + log( labour ),
                              truncNorm = T,
                              data = front41Data )
 
 print(summary(sfa2_front))
 print(lrtest(sfa2_front))
-```
 
