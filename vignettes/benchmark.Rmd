@@ -58,10 +58,10 @@ summary(lmfit)
 sfat <- SFAt::sfa.fit(y = EX1$y,
                      X = as.matrix(EX1[, c("x1", "x2")]),
                      CM = as.matrix(EX1[, c("z1", "z2")]),
-                     spec = "bc95",
+                     dist = "tnorm",
                      deb = F,
-                     opt_method = "SANN",
-                     opt_control = list(maxit = 3e4, trace = T)
+                     optim_method = "BFGS",
+                     optim_control = list(maxit = 3e4, trace = T)
 )
 summary(sfat)
 ```
@@ -74,8 +74,7 @@ require(frontier)
 
 frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
                           data = EX1,
-                          ineffDecrease = T,
-                          truncNorm = T)
+                          ineffDecrease = T)
 
 print(summary(frontest))
 print(lrtest(frontest))
@@ -91,9 +90,8 @@ sfa2 <- SFAt::sfa.fit(y = log(front41Data$output),
                       X = cbind(capital = log(front41Data$capital), 
                                 labour = log(front41Data$labour)), 
                       dist = "tnorm",
-                      spec = "bc95",
-                      opt_method = "BFGS",
-                      opt_control = list(trace = T),
+                      optim_method = "CG",
+                      optim_control = list(trace = T),
                       deb = F)
 
 print(summary(sfa2))
