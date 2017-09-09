@@ -1,16 +1,17 @@
 ---
 title: "Intro to SFAplus package"
 author: "Vaclav Hausenblas"
-date: "2016-04-01"
+date: "2017-09-09"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  ---
-  
+---
+
+
 ```{r Init}
-require(SFAt)
+  require(SFAt)
 # require(msm) # package for drawing from truncated-normal distribution
 # require(data.table) # for more convenient data manipulation
 ```
@@ -27,7 +28,7 @@ data_ex1 <- as.data.frame(sim_data_cs(1000,
                                       ineff = -1, # production function
                                       x_coeff = c(50, 4, 2), 
                                       z_coeff = c(20), 
-                                      sigma_u = 10, sigma_v = 5))
+                                      sigma_u = 10, sigma_v = 3))
 
 ```
 
@@ -51,7 +52,7 @@ model_ex1 <- sfa.fit(y = data_ex1$y,
                      X = cbind(a = data_ex1$x1, b = data_ex1$x2),
                      CM = NULL,   
                      dist = "tnorm",
-                     opt_control = list(temp = 1, tmax = 20, maxit = 6e4)
+                     optim_control = list(temp = 1, tmax = 20, maxit = 6e4)
                      # deb = T, debll = T
 )
 
@@ -99,15 +100,15 @@ model_ex2 <- sfa.fit(y = data_ex2_cm$y,
                      CM = cbind(c = data_ex2_cm$z1, d = data_ex2_cm$z2),
                      dist = "tnorm",
                      # deb = T, debll = T,
-                     opt_method = "SANN",
-                     opt_control = list(maxit = 50e3))
+                     optim_method = "BFGS",
+                     optim_control = list(maxit = 50e3))
 
 # print(model_ex2$coeff_frontier)
 # print(model_ex2$coeff_cm)
 # print(model_ex2$coeff_cv_u)
 # print(model_ex2$coeff_cv_v)
 print(summary(model_ex2))
-print(lrtest(model_ex2))
+print(SFAt::lrtest(model_ex2))
 ```
 
 ### Fitted inefficiency term ($E(u_i|\epsilon_i)$)
@@ -133,25 +134,25 @@ hist(ex2_efficiencies)
 ```{r formula method}
 
 sfa1 <- SFA(y ~ x1 + x2,
-                 data = data_ex1,
-                 dist = "tnorm",
-                 form = "production",
-                 # cm = ~ 0,  
-                 # grad = "fd",
-                 grad = "analytic",
-                 opt_strategy = 1,
-                 nlopt_opts = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e4, xtol_rel = 1e-10,
-                                   "local_opts" = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e3, xtol_rel = 1e-10)),
-                 nlopt_bounds = list(lb = -5, ub = 60),
-                 optim_method = "BFGS",
-                 optim_control = list(trace = 1, maxeval = 10000),
-                 maxLik_method = "NR",
-                 maxLik_control = list(printLevel = 3)
-                 #,deb = T#, debll = T
+            data = data_ex1,
+            dist = "tnorm",
+            form = "production",
+            # cm = ~ 0,  
+            # grad = "fd",
+            grad = "analytic",
+            opt_strategy = 1,
+            nlopt_opts = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e4, xtol_rel = 1e-10,
+                              "local_opts" = list("algorithm" = "NLOPT_LN_PRAXIS", print_level = 1, maxeval = 1e3, xtol_rel = 1e-10)),
+            nlopt_bounds = list(lb = -5, ub = 60),
+            optim_method = "BFGS",
+            optim_control = list(trace = 1, maxeval = 10000),
+            maxLik_method = "NR",
+            maxLik_control = list(printLevel = 3)
+            #,deb = T#, debll = T
 )
 
 print(summary(sfa1))
-print(lrtest(sfa1))
+print(SFAt::lrtest(sfa1))
 
 ```
 
