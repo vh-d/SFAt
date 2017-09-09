@@ -6,4 +6,6 @@
 #'
 #' @useDynLib SFAt
 #' @importFrom Rcpp evalCpp
+#' @importFrom lmtest lrtest
+#' @importFrom lmtest lrtest.default
 "_PACKAGE"

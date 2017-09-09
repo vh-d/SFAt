@@ -25,11 +25,6 @@ lrtest.SFA <- function(object) {
   return(ans)
 }
 
-#' @export
-lrtest <- function(object, ...){
-  UseMethod("lrtest")
-}
-
 
 #' Print LR test results for SFA class
 #' @export
