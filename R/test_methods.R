@@ -39,9 +39,9 @@ print.lrtest.SFA <- function(object) {
       "Null-model: OLS",
       sep = "\n")
 
-  cat(paste0("LR Chisq: ", round(object$LR_test_stat, 3)),
-      paste0("Chisq Df: ", round(object$LR_chisq_df, 3)),
-      paste0("Pr(>Chisq): ", round(object$LR_pvalue, 3)),
+  cat(paste0("LR Chisq: ", format(object$LR_test_stat)),
+      paste0("Chisq Df: ", format(object$LR_chisq_df)),
+      paste0("Pr(>Chisq): ", format(object$LR_pvalue)),
       sep = "\n")
 
 }
