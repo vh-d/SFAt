@@ -28,19 +28,22 @@ t_par_cs_tnorm <- function(pars){
   return(NULL)
 }
 
+
+# likelihood --------------------------------------------------------------
+
 # Advanced version of (Battese and Coelli, 1995) and (Huang and Liu, 1994) models
 # heterogeneity in efficiency term: endogeneous location parameter mu
 # implemented as Hadri et al. 2003
 # parameters: f_coeff, cm_coeff, cv_u_coeff, cv_v_coeff
-ll_cs_tnorm <- function(params,
-                        indeces,
-                        y, X,
-                        CV_u,
-                        CV_v,
-                        CM,
-                        ineff,
-                        minmax = -1,
-                        deb = F) {
+
+ll_cs_tnorm_contrib <- function(params,
+                                indeces,
+                                y, X,
+                                CV_u,
+                                CV_v,
+                                CM,
+                                ineff,
+                                deb = F) {
 
   if (deb) {
     cat("Parameters: ", params)
@@ -87,7 +90,32 @@ ll_cs_tnorm <- function(params,
   }
 
   lli <- -0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
-                  log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u))
+    log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u))
+
+  return(lli)
+}
+
+
+ll_cs_tnorm <- function(params,
+                        indeces,
+                        y, X,
+                        CV_u,
+                        CV_v,
+                        CM,
+                        ineff,
+                        minmax = -1,
+                        deb = F) {
+
+  # compute loglik contributions
+  lli <-
+    ll_cs_tnorm_contrib(params,
+                        indeces,
+                        y, X,
+                        CV_u,
+                        CV_v,
+                        CM,
+                        ineff,
+                        deb)
 
   if (deb) cat("Misbehaving loglikelihood contributions: ", "\n",
                which(!is.finite(lli)), "\n",
@@ -97,18 +125,19 @@ ll_cs_tnorm <- function(params,
                which(lli < quantile(lli, 0.05)), "\n",
                lli[lli < quantile(lli, 0.05)],  "\n")
 
+  # sum to total loglikelihood
   ll <- sum(lli)
   if (deb) cat("Loglikelihood: ", ll,  "\n")
 
-  # if (!is.finite(ll) && minmax == -1) {
-  #   return(sum(!is.finite(lli))*1e100)
-  # }
-
-  return(minmax*ll)
+  return(minmax*ll) # return -loglikelihood for optimization of minimum
 }
 if (require(compiler)) ll_cs_tnorm <- cmpfun(ll_cs_tnorm)
 
 
+
+# gradient functions -----------------------------------------
+
+# analyticaly derived gradient function
 g_cs_tnorm_analytic <- function(params,
                                 indeces,
                                 y, X,
@@ -160,26 +189,28 @@ g_cs_tnorm_analytic <- function(params,
                   g_cm_coeff))
 }
 
-# gradient function
+# finite-difference gradient function
 g_cs_tnorm_fd <- function(params,
-                       indeces,
-                       y, X,
-                       CV_u,
-                       CV_v,
-                       CM,
-                       ineff,
-                       minmax,
-                       deb = F) {
+                          indeces,
+                          y, X,
+                          CV_u,
+                          CV_v,
+                          CM,
+                          ineff,
+                          minmax,
+                          deb = F) {
   n <- length(params)
   hh <- matrix(0, n, n)
   diag(hh) <- .Machine$double.eps^(1/3)
 
   sapply(1:n, function(i) {
     (ll_cs_tnorm(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
-      ll_cs_tnorm(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
+       ll_cs_tnorm(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
 }
 if (require(compiler)) g_cs_tnorm_fd <- cmpfun(g_cs_tnorm_fd)
 
+
+# efficiency --------------------------------------------------------------
 
 u_cs_tnorm <- function(object, estimator) {
   # extract sigmas from the model object

@@ -27,18 +27,20 @@ t_par_cs_hnorm <- function(pars){
   return(pars)
 }
 
+
+# likelihood --------------------------------------------------------------
+
 # likelihood function normal/half-normal distributional assumption
 # params: beta, log(sigma_u^2), log(sigma_v^2)
 
-ll_cs_hnorm <- function(params,
-                        indeces,
-                        y, X,
-                        CM = NULL,
-                        CV_u,
-                        CV_v,
-                        ineff,
-                        minmax,
-                        deb) {
+ll_cs_hnorm_contrib <- function(params,
+                                indeces,
+                                y, X,
+                                CM = NULL,
+                                CV_u,
+                                CV_v,
+                                ineff,
+                                deb) {
 
   if (deb) {
     cat("Parameters: ", params, "\n")
@@ -68,22 +70,51 @@ ll_cs_hnorm <- function(params,
 
   lli <- 0.5*log(2/pi) -log(sigma) + log(pnorm(-(epsilon * sigma_u / sigma_v) / sigma)) - (epsilon^2) / (2*sigma2)
 
-  ll <- sum(lli)
-  if (deb) cat("Loglikelihood: ", ll,  "\n")
-  if (deb) print(summary(epsilon))
-  if (deb) print(summary(lli))
-
-  # if (!is.finite(ll) && minmax == -1) {
-  #   # return(sum(!is.finite(lli))*1e100)
-  #   return(1e150)
-  # }
-
-  return(minmax*ll)
+  return(lli)
 }
 
+
+# main loklikelihood function
+ll_cs_hnorm <- function(params,
+                        indeces,
+                        y, X,
+                        CM = NULL,
+                        CV_u,
+                        CV_v,
+                        ineff,
+                        minmax,
+                        deb) {
+
+  # compute loglik contributions
+  lli <-
+    ll_cs_hnorm_contrib(params,
+                        indeces,
+                        y, X,
+                        CM = NULL,
+                        CV_u,
+                        CV_v,
+                        ineff,
+                        deb)
+
+  if (deb) cat("Misbehaving loglikelihood contributions: ", "\n",
+               which(!is.finite(lli)), "\n",
+               lli[!is.finite(lli)],  "\n")
+
+  if (deb) cat("Suspicious loglikelihood contributions: ", "\n",
+               which(lli < quantile(lli, 0.05)), "\n",
+               lli[lli < quantile(lli, 0.05)],  "\n")
+
+  # sum to total loglikelihood
+  ll <- sum(lli)
+  if (deb) cat("Loglikelihood: ", ll,  "\n")
+
+  return(minmax*ll) # return -loglikelihood for optimization of minimum
+}
 if (require(compiler)) ll_cs_hnorm <- cmpfun(ll_cs_hnorm)
 
-# gradient function
+
+# gradient functions -----------------------------------------
+
 g_cs_hnorm_analytic <- function(params,
                        indeces,
                        y, X,
@@ -156,6 +187,10 @@ g_cs_hnorm_fd <- function(params,
 }
 
 if (require(compiler)) g_cs_hnorm_fd <- cmpfun(g_cs_hnorm_fd)
+
+
+
+# efficiency --------------------------------------------------------------
 
 # Jondrow et al. (1982) as in Parmeter-Kumbhakar
 u_cs_hnorm <- function(object, estimator) {

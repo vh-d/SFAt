@@ -28,18 +28,20 @@ t_par_cs_exp <- function(pars){
 }
 
 
+# likelihood --------------------------------------------------------------
+
 
 # likelihood function normal/exponential distributional assumption
 # params: beta, log(sigma_u^2), log(sigma_v^2)
-ll_cs_exp <- function(params,
-                      indeces,
-                      y, X,
-                      CM = NULL,
-                      CV_u,
-                      CV_v,
-                      ineff,
-                      minmax,
-                      deb) {
+
+ll_cs_exp_contrib <- function(params,
+                              indeces,
+                              y, X,
+                              CM = NULL,
+                              CV_u,
+                              CV_v,
+                              ineff,
+                              deb) {
 
   if (deb) {
     cat("Parameters: ", params, "\n")
@@ -68,26 +70,62 @@ ll_cs_exp <- function(params,
     log(pnorm(-(epsilon + (sigma2_v / sigma_u)) / sigma_v)) +
     epsilon / sigma_u
 
+  return(lli)
+}
+
+
+# main loklikelihood function
+ll_cs_exp <- function(params,
+                      indeces,
+                      y, X,
+                      CM = NULL,
+                      CV_u,
+                      CV_v,
+                      ineff,
+                      minmax = -1,
+                      deb = FALSE) {
+
+  # compute loglik contributions
+  lli <-
+    ll_cs_exp_contrib(params,
+                      indeces,
+                      y, X,
+                      CM = NULL,
+                      CV_u,
+                      CV_v,
+                      ineff,
+                      deb)
+
+  if (deb) cat("Misbehaving loglikelihood contributions: ", "\n",
+               which(!is.finite(lli)), "\n",
+               lli[!is.finite(lli)],  "\n")
+
+  if (deb) cat("Suspicious loglikelihood contributions: ", "\n",
+               which(lli < quantile(lli, 0.05)), "\n",
+               lli[lli < quantile(lli, 0.05)],  "\n")
+
+  # sum to total loglikelihood
   ll <- sum(lli)
+  if (deb) cat("Loglikelihood: ", ll,  "\n")
 
-  # if (!is.finite(ll) && minmax == -1) {
-  #   return(sum(!is.finite(lli))*1e100)
-  # }
-
-  return(minmax*ll)
+  return(minmax*ll) # return -loglikelihood for optimization of minimum
 }
 if (require(compiler)) ll_cs_exp <- cmpfun(ll_cs_exp)
 
-# gradient function
+
+
+
+# gradient functions -----------------------------------------
+
 g_cs_exp_fd <- function(params,
-                     indeces,
-                     y, X,
-                     CV_u,
-                     CV_v,
-                     CM,
-                     ineff,
-                     minmax,
-                     deb) {
+                        indeces,
+                        y, X,
+                        CV_u,
+                        CV_v,
+                        CM,
+                        ineff,
+                        minmax,
+                        deb) {
   n <- length(params)
   hh <- matrix(0, n, n)
   diag(hh) <- .Machine$double.eps^(1/3)
@@ -136,6 +174,11 @@ g_cs_exp_analytic <- function(params,
 
   return(minmax*c(g_f_coeff, g_cv_u_coeff, g_cv_v_coeff))
 }
+
+
+
+# efficiency --------------------------------------------------------------
+
 
 u_cs_exp <- function(object, estimator) {
 
