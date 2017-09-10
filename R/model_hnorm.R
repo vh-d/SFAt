@@ -116,14 +116,14 @@ if (require(compiler)) ll_cs_hnorm <- cmpfun(ll_cs_hnorm)
 # gradient functions -----------------------------------------
 
 g_cs_hnorm_analytic <- function(params,
-                       indeces,
-                       y, X,
-                       CM = NULL,
-                       CV_u,
-                       CV_v,
-                       ineff,
-                       minmax,
-                       deb = F) {
+                                indeces,
+                                y, X,
+                                CM = NULL,
+                                CV_u,
+                                CV_v,
+                                ineff,
+                                minmax,
+                                deb = F) {
 
 
   if (deb) {
@@ -195,7 +195,7 @@ if (require(compiler)) g_cs_hnorm_fd <- cmpfun(g_cs_hnorm_fd)
 # Jondrow et al. (1982) as in Parmeter-Kumbhakar
 u_cs_hnorm <- function(object, estimator) {
 
-   # extract sigmas from the model object
+  # extract sigmas from the model object
   sigma_u <- as.vector(exp(object$data$CV_u %*% object$coeff_cv_u))
   sigma_v <- as.vector(exp(object$data$CV_v %*% object$coeff_cv_v))
 

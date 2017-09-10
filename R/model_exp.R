@@ -132,7 +132,7 @@ g_cs_exp_fd <- function(params,
 
   sapply(1:n, function(i) {
     (  ll_cs_exp(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
-       ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
+         ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
 }
 if (require(compiler)) g_cs_exp_fd <- cmpfun(g_cs_exp_fd)
 
