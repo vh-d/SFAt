@@ -1,5 +1,7 @@
 # PREDICT FUNCTIONS --------------------------------------------------------
 #' predict function for SFA models
+#' @param object    SFA object
+#' @param estimator estimator of inefficiency term
 #' @export
 predict.SFA <- function(object,
                         newdata = NULL,
@@ -10,15 +12,18 @@ predict.SFA <- function(object,
   estimator <- match.arg(estimator)
 
   ret <- switch(type,
-                frontier = predictFrontier(object, newdata),
-                efficiency = efficiency.SFA(object, estimator = estimator),
-                inefficiency = inefficiencyTerm.SFA(object,  estimator = estimator)
+                frontier     = predictFrontier(object, newdata),
+                efficiency   = efficiency.SFA(object,       estimator = estimator),
+                inefficiency = inefficiencyTerm.SFA(object, estimator = estimator)
   )
 
   return(ret)
 }
 
 #' compute efficiency for SFA models
+#' @rdname predict.SFA
+#' @details
+#' Currently, pedict methods assume that frontier model on \code{object} is specified in (trans)log form.
 #' @export
 efficiency.SFA <- function(object, estimator = "JLMS") {
   ineff_vec <- inefficiencyTerm.SFA(object, estimator)
@@ -26,6 +31,7 @@ efficiency.SFA <- function(object, estimator = "JLMS") {
 }
 
 #' predict function for SFA models
+#' @rdname predict.SFA
 #' @export
 inefficiencyTerm.SFA <- function(object, estimator) {
   spec <- object$call$spec
