@@ -2,11 +2,29 @@
 % Please edit documentation in R/predict_methods.R
 \name{predict.SFA}
 \alias{predict.SFA}
+\alias{efficiency.SFA}
+\alias{inefficiencyTerm.SFA}
 \title{predict function for SFA models}
 \usage{
 \method{predict}{SFA}(object, newdata = NULL, type = c("frontier",
   "efficiency", "inefficiency"), estimator = c("JLMS", "ME", "BC"))
+
+\method{efficiency}{SFA}(object, estimator = "JLMS")
+
+\method{inefficiencyTerm}{SFA}(object, estimator)
+}
+\arguments{
+\item{object}{SFA object}
+
+\item{estimator}{estimator of inefficiency term}
 }
 \description{
 predict function for SFA models
+
+compute efficiency for SFA models
+
+predict function for SFA models
+}
+\details{
+Currently, pedict methods assume that frontier model on \code{object} is specified in (trans)log form.
 }
