@@ -74,7 +74,7 @@ ll_cs_tnorm_positive_contrib <- function(params,
 
   N <- length(y)
 
-  Zdelta <- as.vector(CM %*% cm_coeff) # fitted means of inefficiency term
+  Zdelta <- as.vector(exp(CM %*% cm_coeff)) # fitted means of inefficiency term
 
   eps <- -ineff*as.vector(y - (X %*% f_coeff)) # composite error terms
 
@@ -91,8 +91,6 @@ ll_cs_tnorm_positive_contrib <- function(params,
 
   lli <- -0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
     log(pnorm(mu_ast / sigma_ast)) - log(pnorm(Zdelta / sigma_u))
-
-  lli[Zdelta < 0] <- -(.Machine$integer.max - 1) / N
 
   return(lli)
 }
@@ -225,7 +223,7 @@ u_cs_tnorm_positive <- function(object, estimator) {
 
   sigma_ast <- sqrt(sigma2_u * sigma2_v / sigma2)
 
-  mu <- as.vector(object$data$CM %*% object$coeff_cm)
+  mu <- as.vector(exp(object$data$CM %*% object$coeff_cm))
   mu_ast <- (object$ineff * object$residuals * sigma2_u + sigma2_v * mu) / sigma2
 
   u <- switch(estimator,

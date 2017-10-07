@@ -99,7 +99,7 @@ sfa.fit <- function(y,
                     # K = NULL,
                     ineff = -1L,
                     # structure = "cs",
-                    dist = c("tnorm", "hnorm", "exp"),
+                    dist = c("tnorm", "hnorm", "exp", "tnorm_positive"),
                     spec = NULL,
                     intercept = list(f = TRUE,
                                      cm = TRUE,
@@ -158,7 +158,7 @@ sfa.fit <- function(y,
     X    <- subset(X, cc)
     CV_u <- subset(CV_u, cc)
     CV_v <- subset(CV_v, cc)
-    CM   <- if (dist == "tnorm") subset(CM, cc) else NULL
+    CM   <- if (substr(dist, 1, 5) == "tnorm") subset(CM, cc) else NULL
 
     missingness <- T
   } else missingness <- F
@@ -283,7 +283,7 @@ sfa.fit <- function(y,
       names(sv$f)[1:length(coeff_f_names)] <- coeff_f_names
     } # to-do: else check length
 
-    if (dist == "tnorm") {
+    if (substr(dist, 1, 5) == "tnorm") {
       if (is.null(sv$cm)) {
         sv$cm <- rep(0.0, coeff_cm_num)
         names(sv$cm) <- coeff_cm_names
@@ -436,9 +436,9 @@ sfa.fit <- function(y,
   }
 
   if (opt_strategy %in% c(1, 3)) {
-    names(est$par)      <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
+    names(est$par)      <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (substr(dist, 1, 5) == "tnorm") coeff_cm_names else NULL)
   } else {
-    names(est$estimate) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (dist == "tnorm") coeff_cm_names else NULL)
+    names(est$estimate) <- c(coeff_f_names, coeff_cv_u_names, coeff_cv_v_names, if (substr(dist, 1, 5) == "tnorm") coeff_cm_names else NULL)
   }
 
 
@@ -456,13 +456,13 @@ sfa.fit <- function(y,
     coeff_frontier <- est$par[1 : (indeces[1])]
     coeff_cv_u     <- est$par[(1 + indeces[1]) : (indeces[2])]
     coeff_cv_v     <- est$par[(1 + indeces[2]) : (indeces[3])]
-    coeff_cm <- if (dist == "tnorm")
+    coeff_cm <- if (substr(dist, 1, 5) == "tnorm")
                       est$par[(1 + indeces[3]) : (indeces[4])]
   } else {
     coeff_frontier <- est$estimate[1 : (indeces[1])]
     coeff_cv_u     <- est$estimate[(1 + indeces[1]) : (indeces[2])]
     coeff_cv_v     <- est$estimate[(1 + indeces[2]) : (indeces[3])]
-    coeff_cm <- if (dist == "tnorm")
+    coeff_cm <- if (substr(dist, 1, 5) == "tnorm")
                       est$estimate[(1 + indeces[3]) : (indeces[4])]
   }
 
