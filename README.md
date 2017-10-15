@@ -42,9 +42,8 @@ To-do:
     - [ ] time decay model
     - [x] fixed effects in conditional mean equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
     - [x] fixed effects in conditional variance equations in (Battese-Coelli, 1995) model (can be implemented via cross-section model already)
-- [x] explore `nloptr`, and `maxLik` packages for MLE optimizations  
 - [ ] explore `optimx` package for MLE optimization  
 - [x] add analytic gradient functions
-- [ ] rewrite likelihood functions in C++ (using Rcpp), altough the speed increase is small based on first experiments
+- [ ] analytic hessians
 - [ ] LR test for two SFA objects
-- [ ] normal/gamma model
+- [ ] variance of truncated normal distribution

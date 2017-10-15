@@ -1,7 +1,7 @@
 Package: SFAt
 Type: Package
 Title: SFAt: Stochastic frontier analysis on cross-section and panel data
-Version: 0.1.10
+Version: 0.1.11
 Author: Vaclav Hausenblas
 Maintainer: Vaclav Hausenblas <vaclav.hausenblas@gmail.com>
 Description: Collection of routines for estimating SFA (Stochastic frontier analysis) models on both cross-section and panel data.
