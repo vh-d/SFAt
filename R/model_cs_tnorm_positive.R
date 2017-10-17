@@ -1,17 +1,17 @@
 # NORMAL / T-NORMAL MODEL- CROSS SECTION DATA ----------------------------
 
-par_cs_tnorm_check <- function(params,
-                               indeces,
-                               y, X,
-                               CM = NULL,
-                               CV_u,
-                               CV_v) {
+par_cs_tnormp_check <- function(params,
+                                indeces,
+                                y, X,
+                                CM = NULL,
+                                CV_u,
+                                CV_v) {
 
   # extract parameters from parameter vector
   n_f_coeff    <- ncol(X) # number of coeffs for frontier model
-  n_cv_u_coeff <- if (is.matrix(CV_u)) ncol(CV_u) else length(CV_u) # number of coeffs for conditional variance of inefficiency term model
+  n_cv_u_coeff <- if (is.matrix(CV_u)) ncol(CV_u) else length(CV_u)  # number of coeffs for conditional variance of inefficiency term model
   n_cv_v_coeff <- if (is.matrix(CV_v)) ncol(CV_v) else length(CV_v) # number of coeffs for conditional variance of the symmetric error model
-  n_cm_coeff   <- if (is.matrix(CM))   ncol(CM)   else length(CM)   # number of coeffs for conditional mean model
+  n_cm_coeff   <- if (is.matrix(CM)) ncol(CM) else length(CM) # number of coeffs for conditional mean model
 
   if (length(params) != n_f_coeff + n_cm_coeff + n_cv_u_coeff + n_cv_v_coeff) {
     stop("Incorrect nuber of parameters. ",
@@ -21,7 +21,7 @@ par_cs_tnorm_check <- function(params,
   return(TRUE)
 }
 
-t_par_cs_tnorm <- function(pars){
+t_par_cs_tnormp <- function(pars){
   # pars <- sqrt(exp(pars))
   # names(pars) <- c("sigma_v")
   # return(pars)
@@ -36,20 +36,20 @@ t_par_cs_tnorm <- function(pars){
 # implemented as Hadri et al. 2003
 # parameters: f_coeff, cm_coeff, cv_u_coeff, cv_v_coeff
 
-ll_cs_tnorm_contrib <- function(params,
-                                indeces,
-                                y, X,
-                                CV_u,
-                                CV_v,
-                                CM,
-                                ineff,
-                                deb = F) {
+ll_cs_tnormp_contrib <- function(params,
+                                 indeces,
+                                 y, X,
+                                 CV_u,
+                                 CV_v,
+                                 CM,
+                                 ineff,
+                                 deb = F) {
 
   if (deb) {
     cat("Parameters: ", params)
   }
 
-  f_coeff    <- params[              1:indeces[1]]
+  f_coeff    <- params[              1: indeces[1]]
   cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
   cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
   cm_coeff   <- params[(indeces[3] + 1):indeces[4]]
@@ -69,24 +69,24 @@ ll_cs_tnorm_contrib <- function(params,
                "cm coeffs: ",       paste(cm_coeff), "\n",
                "cv_u coeffs: ",     paste(cv_u_coeff), "\n",
                "cv_v coeffs: ",     paste(cv_v_coeff), "\n",
-               "sigma_u: ",         sigma_u, "\n",
-               "sigma_v: ",         sigma_v, "\n")
+               "sigma_u: ", sigma_u, "\n",
+               "sigma_v: ", sigma_v, "\n")
 
   N <- length(y)
 
-  Zdelta <- as.vector(CM %*% cm_coeff) # fitted means of inefficiency term
+  Zdelta <- as.vector(exp(CM %*% cm_coeff)) # fitted means of inefficiency term
 
   eps <- -ineff*as.vector(y - (X %*% f_coeff)) # composite error terms
 
   mu_ast <- (sigma2_v*Zdelta - sigma2_u*eps) / sigma2
 
   if (deb) {
-    cat(length(Zdelta) == N, "\n",
-        length(eps) == N, "\n",
-        length(mu_ast) == N, "\n",
+    cat(length(Zdelta)    == N, "\n",
+        length(eps)       == N, "\n",
+        length(mu_ast)    == N, "\n",
         length(sigma_ast) == N, "\n",
-        length(sigma2) == N, "\n",
-        length(sigma_u) == N, "\n")
+        length(sigma2)    == N, "\n",
+        length(sigma_u)   == N, "\n")
   }
 
   lli <- -0.5*log(2*pi) - log(sigma) - 0.5 * ((eps + Zdelta)^2)/sigma2 +
@@ -96,26 +96,26 @@ ll_cs_tnorm_contrib <- function(params,
 }
 
 
-ll_cs_tnorm <- function(params,
-                        indeces,
-                        y, X,
-                        CV_u,
-                        CV_v,
-                        CM,
-                        ineff,
-                        minmax = -1,
-                        deb = F) {
+ll_cs_tnormp <- function(params,
+                         indeces,
+                         y, X,
+                         CV_u,
+                         CV_v,
+                         CM,
+                         ineff,
+                         minmax = -1,
+                         deb = F) {
 
   # compute loglik contributions
   lli <-
-    ll_cs_tnorm_contrib(params,
-                        indeces,
-                        y, X,
-                        CV_u,
-                        CV_v,
-                        CM,
-                        ineff,
-                        deb)
+    ll_cs_tnormp_contrib(params,
+                         indeces,
+                         y, X,
+                         CV_u,
+                         CV_v,
+                         CM,
+                         ineff,
+                         deb)
 
   if (deb) cat("Misbehaving loglikelihood contributions: ", "\n",
                which(!is.finite(lli)), "\n",
@@ -131,22 +131,23 @@ ll_cs_tnorm <- function(params,
 
   return(minmax*ll) # return -loglikelihood for optimization of minimum
 }
-if (require(compiler)) ll_cs_tnorm <- cmpfun(ll_cs_tnorm)
+if (require(compiler)) ll_cs_tnormp <- cmpfun(ll_cs_tnormp)
 
 
 
 # gradient functions -----------------------------------------
 
 # analyticaly derived gradient function
-g_cs_tnorm_analytic <- function(params,
-                                indeces,
-                                y, X,
-                                CV_u,
-                                CV_v,
-                                CM,
-                                ineff,
-                                minmax = -1,
-                                deb = F) {
+# todo
+.g_cs_tnormp_analytic <- function(params,
+                                  indeces,
+                                  y, X,
+                                  CV_u,
+                                  CV_v,
+                                  CM,
+                                  ineff,
+                                  minmax = -1,
+                                  deb = F) {
 
   f_coeff    <- params[             1:indeces[1]]
   cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
@@ -165,7 +166,7 @@ g_cs_tnorm_analytic <- function(params,
 
   N <- length(y)
 
-  Zdelta <- as.vector(CM %*% cm_coeff) # fitted means of inefficiency term
+  Zdelta <- as.vector(exp(CM %*% cm_coeff)) # fitted means of inefficiency term
 
   eps <- -ineff*as.vector(y - (X %*% f_coeff)) # composite error terms
 
@@ -190,29 +191,32 @@ g_cs_tnorm_analytic <- function(params,
 }
 
 # finite-difference gradient function
-g_cs_tnorm_fd <- function(params,
-                          indeces,
-                          y, X,
-                          CV_u,
-                          CV_v,
-                          CM,
-                          ineff,
-                          minmax,
-                          deb = F) {
+g_cs_tnormp_fd <- function(params,
+                           indeces,
+                           y, X,
+                           CV_u,
+                           CV_v,
+                           CM,
+                           ineff,
+                           minmax,
+                           deb = F) {
   n <- length(params)
   hh <- matrix(0, n, n)
   diag(hh) <- .Machine$double.eps^(1/3)
 
   sapply(1:n, function(i) {
-    (ll_cs_tnorm(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
-       ll_cs_tnorm(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
+    (ll_cs_tnormp(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
+       ll_cs_tnormp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
 }
-if (require(compiler)) g_cs_tnorm_fd <- cmpfun(g_cs_tnorm_fd)
+if (require(compiler)) g_cs_tnormp_fd <- cmpfun(g_cs_tnormp_fd)
+
+# until analytic is corrected
+g_cs_tnormp_analytic <- g_cs_tnormp_fd
 
 
 # efficiency --------------------------------------------------------------
 
-u_cs_tnorm <- function(object, estimator) {
+u_cs_tnormp <- function(object, estimator) {
   # extract sigmas from the model object
   sigma_u <- as.vector(exp(object$data$CV_u %*% object$coeff_cv_u))
   sigma_v <- as.vector(exp(object$data$CV_v %*% object$coeff_cv_v))
@@ -223,7 +227,7 @@ u_cs_tnorm <- function(object, estimator) {
 
   sigma_ast <- sqrt(sigma2_u * sigma2_v / sigma2)
 
-  mu <- as.vector(object$data$CM %*% object$coeff_cm)
+  mu <- as.vector(exp(object$data$CM %*% object$coeff_cm))
   mu_ast <- (object$ineff * object$residuals * sigma2_u + sigma2_v * mu) / sigma2
 
   u <- switch(estimator,
