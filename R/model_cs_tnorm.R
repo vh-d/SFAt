@@ -8,10 +8,10 @@ par_cs_tnorm_check <- function(params,
                                CV_v) {
 
   # extract parameters from parameter vector
-  n_f_coeff <- ncol(X) # number of coeffs for frontier model
-  n_cv_u_coeff <- if (is.matrix(CV_u)) ncol(CV_u) else length(CV_u)  # number of coeffs for conditional variance of inefficiency term model
+  n_f_coeff    <- ncol(X) # number of coeffs for frontier model
+  n_cv_u_coeff <- if (is.matrix(CV_u)) ncol(CV_u) else length(CV_u) # number of coeffs for conditional variance of inefficiency term model
   n_cv_v_coeff <- if (is.matrix(CV_v)) ncol(CV_v) else length(CV_v) # number of coeffs for conditional variance of the symmetric error model
-  n_cm_coeff <- if (is.matrix(CM)) ncol(CM) else length(CM) # number of coeffs for conditional mean model
+  n_cm_coeff   <- if (is.matrix(CM))   ncol(CM)   else length(CM)   # number of coeffs for conditional mean model
 
   if (length(params) != n_f_coeff + n_cm_coeff + n_cv_u_coeff + n_cv_v_coeff) {
     stop("Incorrect nuber of parameters. ",
@@ -49,7 +49,7 @@ ll_cs_tnorm_contrib <- function(params,
     cat("Parameters: ", params)
   }
 
-  f_coeff    <- params[             1:indeces[1]]
+  f_coeff    <- params[              1:indeces[1]]
   cv_u_coeff <- params[(indeces[1] + 1):indeces[2]]
   cv_v_coeff <- params[(indeces[2] + 1):indeces[3]]
   cm_coeff   <- params[(indeces[3] + 1):indeces[4]]
@@ -66,11 +66,11 @@ ll_cs_tnorm_contrib <- function(params,
 
   if (deb) cat("Total of ", length(params), " parameters: \n",
                "frontier coeffs: ", paste(f_coeff), "\n",
-               "cm coeffs: ", paste(cm_coeff), "\n",
-               "cv_u coeffs: ", paste(cv_u_coeff), "\n",
-               "cv_v coeffs: ", paste(cv_v_coeff), "\n",
-               "sigma_u: ", sigma_u, "\n",
-               "sigma_v: ", sigma_v, "\n")
+               "cm coeffs: ",       paste(cm_coeff), "\n",
+               "cv_u coeffs: ",     paste(cv_u_coeff), "\n",
+               "cv_v coeffs: ",     paste(cv_v_coeff), "\n",
+               "sigma_u: ",         sigma_u, "\n",
+               "sigma_v: ",         sigma_v, "\n")
 
   N <- length(y)
 
