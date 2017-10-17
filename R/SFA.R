@@ -605,6 +605,8 @@ summary.SFA <- function(object) {
     coef_table[(indeces[3] + 1) : indeces[4], , drop = F] else NULL
 
   ans <- list(call = object$call,
+              dist = object$call$dist,
+              ineff = object$ineff,
               N = object$N,
               N_total = object$N_total,
               loglik = object$loglik,
@@ -649,10 +651,19 @@ print.summary.SFA <- function(object) {
   cat("Stochastic frontier model",
       "=========================", sep = "\n")
 
-  cat(if (object$call$structure == "panel") "Panel" else "Cross-section", "data.\n")
+  # Model specifications
+  cat("Specification:", if (object$call$structure == "panel") "panel" else "cross-section", "data\t")
+  if (object$call$structure != "panel") cat(if (object$ineff == 1) "cost" else "production", "function\t", "normal /", object$dist, "model")
+  cat("\n")
+
+  # Observations
   cat("N:", object$N, if (object$N != object$N_total) paste0("(", object$N_total - object$N, " dropped due to missing values)") else NULL, "\n")
+
+  # Optimizations
   cat("Log-likelihood:", object$loglik, "\n")
   cat("\n", sep = "")
+
+  # Coef tables
   print(round(outtable, digits = 4), digits = 4, nsmall = 3, na.print = "", quote = F)
   cat("\n", sep = "")
 }
