@@ -131,8 +131,6 @@ ll_cs_tnorm <- function(params,
 
   return(minmax*ll) # return -loglikelihood for optimization of minimum
 }
-if (require(compiler)) ll_cs_tnorm <- cmpfun(ll_cs_tnorm)
-
 
 
 # gradient functions -----------------------------------------
@@ -207,7 +205,6 @@ g_cs_tnorm_fd <- function(params,
     (ll_cs_tnorm(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
        ll_cs_tnorm(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
 }
-if (require(compiler)) g_cs_tnorm_fd <- cmpfun(g_cs_tnorm_fd)
 
 
 # efficiency --------------------------------------------------------------

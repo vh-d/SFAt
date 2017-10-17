@@ -21,7 +21,5 @@ gradient <- function(fn, par) {
     )
   }
 
-  if (require(compiler)) res <- cmpfun(res)
-
   return(res)
 }

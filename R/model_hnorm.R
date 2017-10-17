@@ -110,7 +110,6 @@ ll_cs_hnorm <- function(params,
 
   return(minmax*ll) # return -loglikelihood for optimization of minimum
 }
-if (require(compiler)) ll_cs_hnorm <- cmpfun(ll_cs_hnorm)
 
 
 # gradient functions -----------------------------------------
@@ -162,7 +161,6 @@ if (require(compiler)) ll_cs_hnorm <- cmpfun(ll_cs_hnorm)
   return(minmax*c(g_f_coeff, g_cv_u_coeff, g_cv_v_coeff))
 }
 
-if (require(compiler)) g_cs_hnorm_analytic <- cmpfun(g_cs_hnorm_analytic)
 
 # gradient function
 g_cs_hnorm_fd <- function(params,
@@ -186,7 +184,6 @@ g_cs_hnorm_fd <- function(params,
          ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / heps2})
 }
 
-if (require(compiler)) g_cs_hnorm_fd <- cmpfun(g_cs_hnorm_fd)
 
 # until bug in analytic gradient is fixed
 g_cs_hnorm_analytic <- g_cs_hnorm_fd

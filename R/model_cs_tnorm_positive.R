@@ -131,7 +131,6 @@ ll_cs_tnormp <- function(params,
 
   return(minmax*ll) # return -loglikelihood for optimization of minimum
 }
-if (require(compiler)) ll_cs_tnormp <- cmpfun(ll_cs_tnormp)
 
 
 
@@ -208,7 +207,6 @@ g_cs_tnormp_fd <- function(params,
     (ll_cs_tnormp(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
        ll_cs_tnormp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
 }
-if (require(compiler)) g_cs_tnormp_fd <- cmpfun(g_cs_tnormp_fd)
 
 # until analytic is corrected
 g_cs_tnormp_analytic <- g_cs_tnormp_fd

@@ -110,8 +110,6 @@ ll_cs_exp <- function(params,
 
   return(minmax*ll) # return -loglikelihood for optimization of minimum
 }
-if (require(compiler)) ll_cs_exp <- cmpfun(ll_cs_exp)
-
 
 
 
@@ -134,7 +132,6 @@ g_cs_exp_fd <- function(params,
     (  ll_cs_exp(params + hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb) -
          ll_cs_exp(params - hh[i, ], indeces, y, X, CV_u, CV_v, CM, ineff, minmax, deb)) / (2 * .Machine$double.eps^(1/3))})
 }
-if (require(compiler)) g_cs_exp_fd <- cmpfun(g_cs_exp_fd)
 
 g_cs_exp_analytic <- function(params,
                               indeces,
