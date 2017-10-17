@@ -8,7 +8,7 @@
 \title{Estimate stochastic frontier analysis (SFA) models.}
 \usage{
 sfa.fit(y, X, CM = NULL, CV_u = NULL, CV_v = NULL, ineff = -1L,
-  dist = c("tnorm", "hnorm", "exp", "tnorm_positive"), spec = NULL,
+  dist = c("tnorm", "hnorm", "exp", "tnormp"), spec = NULL,
   intercept = list(f = TRUE, cm = TRUE, cv_u = TRUE, cv_v = TRUE),
   sv = list(f = NULL, cm = NULL, cv_u = NULL, cv_v = NULL),
   opt_strategy = 1, grad = "fd", ll = NULL, optim_method = "BFGS",
