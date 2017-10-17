@@ -114,8 +114,8 @@ if (require(compiler)) ll_cs_hnorm <- cmpfun(ll_cs_hnorm)
 
 
 # gradient functions -----------------------------------------
-
-g_cs_hnorm_analytic <- function(params,
+# todo: find bug in derivarive
+.g_cs_hnorm_analytic <- function(params,
                                 indeces,
                                 y, X,
                                 CM = NULL,
@@ -188,6 +188,8 @@ g_cs_hnorm_fd <- function(params,
 
 if (require(compiler)) g_cs_hnorm_fd <- cmpfun(g_cs_hnorm_fd)
 
+# until bug in analytic gradient is fixed
+g_cs_hnorm_analytic <- g_cs_hnorm_fd
 
 
 # efficiency --------------------------------------------------------------
