@@ -34,8 +34,8 @@ plot(EX1)
 
 ```{r Plot individual variables}
 hist(EX1$y)
-hist(EX1$u)
 hist(EX1$eps)
+hist(EX1$u)
 
 ```
 
@@ -53,13 +53,14 @@ summary(lmfit)
 ## SFA model
 
 ```{r SFAt model}
-sfat <- SFAt::sfa.fit(y = EX1$y,
-                     X = as.matrix(EX1[, c("x1", "x2")]),
-                     CM = as.matrix(EX1[, c("z1", "z2")]),
-                     dist = "tnorm",
-                     deb = F,
-                     optim_method = "BFGS",
-                     optim_control = list(maxit = 3e4, trace = T)
+sfat <- SFAt::SFA(y ~ x1 + x2 ,
+                  cm = ~ z1 + z2,
+                  data = EX1,
+                  dist = "tnorm",
+                  grad = "analytic",
+                  deb = F,
+                  optim_method = "BFGS",
+                  optim_control = list(maxit = 3e4, trace = T)
 )
 summary(sfat)
 ```
@@ -72,15 +73,26 @@ require(frontier)
 
 frontest <- frontier::sfa(y ~ x1 + x2 | z1 + z2,
                           data = EX1,
-                          ineffDecrease = T)
+                          ineffDecrease = T,
+                          maxit = 100)
 
 print(summary(frontest))
 print(lrtest(frontest))
+```
 
+```{r}
+fit_sfat <- predict(sfat, type = "efficiency", estimator = "JLMS")
+fit_frontier <- frontier::efficiencies(frontest, asInData = FALSE)
+fit_true <- exp(-EX1$u)
+plot(x = fit_sfat, y = fit_true)
+plot(x = fit_frontier, y = fit_true)
+plot(x = fit_sfat, y = fit_frontier)
+points(x = fit_sfat, y = fit_true, col = "red")
+mean(fit_true - fit_sfat)
+mean(fit_true - fit_frontier)
 ```
 
 ## Example 2
-
 ```{r SFAt BC95}
 data("front41Data")
 
