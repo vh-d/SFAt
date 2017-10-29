@@ -4,7 +4,7 @@
 \alias{print.summary.SFA}
 \title{Print summary for SFA objects.}
 \usage{
-\method{print}{summary.SFA}(object)
+\method{print}{summary.SFA}(object, rounded = TRUE, ...)
 }
 \arguments{
 \item{object}{object of class SFA}

@@ -626,7 +626,7 @@ summary.SFA <- function(object) {
 #' @param object object of class SFA
 #' @details Prints table of summary statistics for SFA model fitted by \code{sfa.fit} funtion.
 #' @export
-print.summary.SFA <- function(object) {
+print.summary.SFA <- function(object, rounded = TRUE, ...) {
 
   head_cv_u <- matrix(NA, 1, ncol(object$coefficients_frontier))
   head_cv_v <- head_cv_u
@@ -642,7 +642,7 @@ print.summary.SFA <- function(object) {
 
   outtable <- rbind(object$coefficients_frontier,
                     if (!is.null(object$coefficients_cm)) head_mu else NULL,
-                    if (!is.null(object$coefficients_cm)) round(object$coefficients_cm, 3) else NULL,
+                    if (!is.null(object$coefficients_cm)) object$coefficients_cm else NULL,
                     head_cv_u,
                     object$coefficients_cv_u,
                     head_cv_v,
@@ -664,7 +664,12 @@ print.summary.SFA <- function(object) {
   cat("\n", sep = "")
 
   # Coef tables
-  print(round(outtable, digits = 4), digits = 4, nsmall = 3, na.print = "", quote = F)
+  print(if (rounded) round(outtable, digits = 4) else outtable,
+        digits = 4,
+        nsmall = 3,
+        na.print = "",
+        quote = FALSE,
+        ...)
   cat("\n", sep = "")
 }
 
