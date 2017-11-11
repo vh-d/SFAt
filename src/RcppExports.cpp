@@ -24,25 +24,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rtnorm_
-NumericVector rtnorm_(int n, double mean, double sd, double lower, double upper);
-RcppExport SEXP _SFAt_rtnorm_(SEXP nSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP lowerSEXP, SEXP upperSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< double >::type mean(meanSEXP);
-    Rcpp::traits::input_parameter< double >::type sd(sdSEXP);
-    Rcpp::traits::input_parameter< double >::type lower(lowerSEXP);
-    Rcpp::traits::input_parameter< double >::type upper(upperSEXP);
-    rcpp_result_gen = Rcpp::wrap(rtnorm_(n, mean, sd, lower, upper));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SFAt_ll_cs_exp_cpp", (DL_FUNC) &_SFAt_ll_cs_exp_cpp, 9},
-    {"_SFAt_rtnorm_", (DL_FUNC) &_SFAt_rtnorm_, 5},
     {NULL, NULL, 0}
 };
 
