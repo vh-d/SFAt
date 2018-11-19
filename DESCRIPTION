@@ -7,7 +7,7 @@ Maintainer: Vaclav Hausenblas <vaclav.hausenblas@gmail.com>
 Description: Collection of routines for estimating SFA (Stochastic frontier analysis) models on both cross-section and panel data.
 License: GPL-2
 LazyData: TRUE
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Imports:
   Rcpp (>= 0.12.5),
   lmtest,

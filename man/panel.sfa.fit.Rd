@@ -4,8 +4,8 @@
 \alias{panel.sfa.fit}
 \title{fit SFA models on panel data}
 \usage{
-panel.sfa.fit(y, X, K = NULL, ineff = -1L, spec = c("css90"), deb = F,
-  debll = F)
+panel.sfa.fit(y, X, K = NULL, ineff = -1L, spec = c("css90"),
+  deb = F, debll = F)
 }
 \arguments{
 \item{y}{- dependent variable (typically log of total product or cost)}
